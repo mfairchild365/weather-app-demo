@@ -164,3 +164,12 @@ returns real seeded/ingested data end to end through Docker.
   `## Accessibility` states not applicable, per the template's own opt-out).
 - Every implementation task carries a `Test:` or `Done when:` line per the tasks template's
   Testing rule (constitution Principle II).
+
+## Addendum (spec FR-014, added while planning 003-forecast-browser)
+
+- [x] T028 Join `weather_codes` in `getLatestObservation`, `getForecastHourly`, `getForecastDaily`
+      (`packages/db/src/repositories/{observations,forecasts}.ts`) to return `weatherLabel` /
+      `weatherIconKey`; propagate through `packages/api/src/{schemas,serializers}.ts`
+      Done when: `GET /api/cities/:slug` includes `weatherLabel` (e.g. "Mainly clear"), not just
+      the bare WMO code
+      Test: extends `packages/api/src/routes/cities.test.ts`

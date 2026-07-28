@@ -115,7 +115,11 @@ describe('cities routes', () => {
 
       expect(response.statusCode).toBe(200);
       const body = response.json();
-      expect(body.latestObservation).toMatchObject({ temperature: 22.5, weatherCode: 1 });
+      expect(body.latestObservation).toMatchObject({
+        temperature: 22.5,
+        weatherCode: 1,
+        weatherLabel: 'Mainly clear',
+      });
       expect(body.dataAsOf).not.toBeNull();
 
       await app.close();

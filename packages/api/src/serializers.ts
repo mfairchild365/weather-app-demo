@@ -37,6 +37,8 @@ export function serializeObservation(observation: ObservationRow) {
     pressure: toNumberOrNull(observation.pressure),
     precipitation: toNumberOrNull(observation.precipitation),
     weatherCode: observation.weatherCode,
+    weatherLabel: observation.weatherLabel,
+    weatherIconKey: observation.weatherIconKey,
     isDay: observation.isDay,
   };
 }
@@ -51,6 +53,8 @@ export function serializeForecastHourly(row: ForecastHourlyRow) {
     precipitation: toNumberOrNull(row.precipitation),
     precipitationProbability: toNumberOrNull(row.precipitationProbability),
     weatherCode: row.weatherCode,
+    weatherLabel: row.weatherLabel,
+    weatherIconKey: row.weatherIconKey,
     isDay: row.isDay,
   };
 }
@@ -64,6 +68,8 @@ export function serializeForecastDaily(row: ForecastDailyRow) {
     precipitationSum: toNumberOrNull(row.precipitationSum),
     precipitationProbabilityMax: toNumberOrNull(row.precipitationProbabilityMax),
     weatherCode: row.weatherCode,
+    weatherLabel: row.weatherLabel,
+    weatherIconKey: row.weatherIconKey,
     sunrise: row.sunrise ? row.sunrise.toISOString() : null,
     sunset: row.sunset ? row.sunset.toISOString() : null,
   };

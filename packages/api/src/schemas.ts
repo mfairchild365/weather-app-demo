@@ -30,6 +30,8 @@ export const observationSchema = z.object({
   pressure: z.number().nullable().describe('hPa'),
   precipitation: z.number().nullable().describe('mm'),
   weatherCode: z.number().int(),
+  weatherLabel: z.string().describe('Human-readable label, e.g. "Partly cloudy"'),
+  weatherIconKey: z.string(),
   isDay: z.boolean(),
 });
 
@@ -52,6 +54,8 @@ export const forecastHourlyRowSchema = z.object({
   precipitation: z.number().nullable(),
   precipitationProbability: z.number().nullable().describe('Percent'),
   weatherCode: z.number().int(),
+  weatherLabel: z.string(),
+  weatherIconKey: z.string(),
   isDay: z.boolean(),
 });
 
@@ -63,6 +67,8 @@ export const forecastDailyRowSchema = z.object({
   precipitationSum: z.number().nullable(),
   precipitationProbabilityMax: z.number().nullable().describe('Percent'),
   weatherCode: z.number().int(),
+  weatherLabel: z.string(),
+  weatherIconKey: z.string(),
   sunrise: z.string().nullable(),
   sunset: z.string().nullable(),
 });

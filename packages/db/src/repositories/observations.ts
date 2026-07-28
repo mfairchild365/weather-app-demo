@@ -1,9 +1,27 @@
 import { eq, desc } from 'drizzle-orm';
 import type { Database } from '../client';
 import { observations } from '../schema/observations';
+import { weatherCodes } from '../schema/lookups';
 
 export type ObservationInput = typeof observations.$inferInsert;
-export type ObservationRow = typeof observations.$inferSelect;
+
+export interface ObservationRow {
+  cityId: number;
+  ingestRunId: number;
+  observedAt: Date;
+  temperature: string;
+  windSpeed: string;
+  windDirection: string | null;
+  humidity: string | null;
+  pressure: string | null;
+  precipitation: string | null;
+  weatherCode: number;
+  /** Human-readable label for `weatherCode`, joined from weather_codes — never duplicated as a
+   * hardcoded lookup on the client, per the constitution's normalized-schema principle. */
+  weatherLabel: string;
+  weatherIconKey: string;
+  isDay: boolean;
+}
 
 /** The most recent observation for a city, or undefined if none have been ingested yet. */
 export async function getLatestObservation(
@@ -11,8 +29,23 @@ export async function getLatestObservation(
   cityId: number,
 ): Promise<ObservationRow | undefined> {
   const rows = await db
-    .select()
+    .select({
+      cityId: observations.cityId,
+      ingestRunId: observations.ingestRunId,
+      observedAt: observations.observedAt,
+      temperature: observations.temperature,
+      windSpeed: observations.windSpeed,
+      windDirection: observations.windDirection,
+      humidity: observations.humidity,
+      pressure: observations.pressure,
+      precipitation: observations.precipitation,
+      weatherCode: observations.weatherCode,
+      weatherLabel: weatherCodes.label,
+      weatherIconKey: weatherCodes.iconKey,
+      isDay: observations.isDay,
+    })
     .from(observations)
+    .innerJoin(weatherCodes, eq(observations.weatherCode, weatherCodes.code))
     .where(eq(observations.cityId, cityId))
     .orderBy(desc(observations.observedAt))
     .limit(1);

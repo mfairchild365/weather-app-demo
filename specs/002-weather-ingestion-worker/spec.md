@@ -146,6 +146,11 @@ transparently read-only and non-interactive — freshness is the substitute for 
   validation (no hand-maintained duplicate contract).
 - **FR-013**: All database access from both the worker and the API MUST go through typed
   repository functions in `packages/db`; neither process composes SQL from external input.
+- **FR-014**: Every observation and forecast row the API returns MUST include a human-readable
+  weather label (and icon key) resolved via a join against `weather_codes` in the repository layer
+  — added once `003-forecast-browser` needed a real label to display; the consuming UI MUST NOT
+  maintain its own copy of the WMO code table (constitution Principle IV: no denormalized
+  duplication of lookup data).
 
 ### Key Entities *(include if feature involves data)*
 
