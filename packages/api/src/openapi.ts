@@ -14,7 +14,7 @@ export async function registerOpenApi(app: FastifyInstance): Promise<void> {
       info: {
         title: 'Probably Weather API',
         description:
-          'Read-only weather data for the seeded cities — GET routes only. Accuracy not guaranteed, but neither is anyone else\'s.',
+          "Read-only weather data for the seeded cities — GET routes only. Accuracy not guaranteed, but neither is anyone else's.",
         version: '0.1.0',
       },
     },

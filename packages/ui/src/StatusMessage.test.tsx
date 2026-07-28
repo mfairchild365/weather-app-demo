@@ -51,9 +51,7 @@ describe('StatusMessage', () => {
   });
 
   it('does not re-announce identical text on re-render', () => {
-    const { rerender } = render(
-      <StatusMessage id="s6" politeness="status" message="12 cities" />,
-    );
+    const { rerender } = render(<StatusMessage id="s6" politeness="status" message="12 cities" />);
     expect(politeRegion()).toHaveTextContent('12 cities');
     politeRegion()!.textContent = ''; // simulate the announcer having cleared it after 500ms
 

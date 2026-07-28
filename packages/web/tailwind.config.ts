@@ -9,13 +9,7 @@ export default {
       // legible if the self-hosted woff2 request is blocked or slow (font-display: swap in
       // index.css handles the timing; this handles the permanent fallback).
       fontFamily: {
-        display: [
-          '"Space Grotesk"',
-          'ui-sans-serif',
-          'system-ui',
-          '-apple-system',
-          'sans-serif',
-        ],
+        display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
       },
     },
   },

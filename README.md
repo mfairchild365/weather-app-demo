@@ -202,12 +202,12 @@ recoloring it. This is why both test tiers exist: component-level axe scans catc
 issues fast, but real color-contrast verification needs a real rendering engine.
 
 A second gap, caught this time by computing ratios directly rather than by axe: `004`'s new teal
-accent, plugged into the *existing* primary `Button` variant's hardcoded `text-white`, dropped to
+accent, plugged into the _existing_ primary `Button` variant's hardcoded `text-white`, dropped to
 1.48:1 in the dark theme — worse than the 2.54:1 the original blue accent already had (a
 pre-existing, unnoticed failure below the 4.5:1 AA threshold). Fixed by making the button's text
 color `var(--color-bg)` instead of a literal white — `--color-focus` and `--color-bg` invert
 together between themes, so the pairing holds >=4.5:1 in both (verified in `tokens.test.ts`, not
-eyeballed). A lesson for future palette swaps: re-verify every token's *downstream* usages, not
+eyeballed). A lesson for future palette swaps: re-verify every token's _downstream_ usages, not
 just the token's own contrast against page backgrounds.
 
 **Known limitations** (no "fully accessible" claim — see each spec's `known_limitations` for the
@@ -222,7 +222,7 @@ full list with affected personas):
 - The site's deadpan-forecaster copy (spec `004-probably-weather-personality`) can be misread by
   some cognitive and neurodivergent users, and by non-native English readers, who may take a wry
   line literally or find it unclear. Every joke line keeps its plain-language fact directly
-  adjacent — no information is ever *only* available via the joke — but the risk of misreading
+  adjacent — no information is ever _only_ available via the joke — but the risk of misreading
   isn't eliminated.
 
 ## CI/CD
