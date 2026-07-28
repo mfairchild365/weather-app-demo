@@ -1,6 +1,6 @@
 ---
 name: building-accessible-ui
-description: MUST BE USED for any UI work. Invoke this skill before generating, modifying, or reviewing any code that renders, styles, or wires up a user-facing interface — including markup, components, templates, styles, and the JavaScript/TypeScript that drives them. This skill encodes the accessibility (WCAG 2.2 AA) requirements every UI change must satisfy; skipping it produces inaccessible output. Applies across web, mobile, and desktop. If the task touches the UI layer in any way, use this skill first. Already invoked earlier in this session? Don't invoke again — apply the checklist and any component/reference files you already loaded to the new task.
+description: MUST BE USED for any UI work. Invoke this skill before generating, modifying, or reviewing any code that renders, styles, or wires up a user-facing interface — including markup, components, templates, styles, and the JavaScript/TypeScript that drives them. Also invoke this skill when writing or reviewing a spec, plan, design doc, PRD, RFC, ADR, ticket, or task list for a user-facing feature — the accessibility contract belongs in the spec, before implementation. This skill encodes the accessibility (WCAG 2.2 AA) requirements every UI change must satisfy; skipping it produces inaccessible output. Applies across web, mobile, and desktop. If the task touches the UI layer in any way, use this skill first. Already invoked earlier in this session? Don't invoke again — apply the checklist and any component/reference files you already loaded to the new task.
 ---
 
 # building-accessible-ui
@@ -55,7 +55,19 @@ Identify which components the request involves (form, checkbox group, radio grou
 
 Do not claim the output is "fully accessible". State what was addressed and known limitations.
 
-**Do NOT use this skill for:** backend-only changes, data migrations, build/CI configuration, non-UI tests, or tasks that do not touch the UI layer.
+**Do NOT use this skill for:** backend-only changes, data migrations, build/CI configuration, non-UI tests, or tasks that do not touch the UI layer. Planning or specifying a user-facing feature *is* in scope, even though no UI code is written yet.
+
+## Spec-driven work
+
+**Writing a spec/plan for UI work?** The accessibility contract is part of the spec, not a follow-up.
+Specify at minimum: components used, accessible name for every interactive element, keyboard and
+focus behavior (including where focus moves and restores), ARIA state attributes and their triggers,
+live regions, and the automated test that proves it. → `references/spec-driven-development.md`.
+
+**Implementing from a spec?** Read its accessibility section first and treat it as the contract.
+**If it has none, write that contract into the spec before writing code.** Do not start from a spec
+that leaves accessible names, keyboard behavior, or live regions unspecified — implementing first and
+documenting after produces guesses the reviewer cannot check.
 
 ## Checklist
 
@@ -96,5 +108,5 @@ Do not claim the output is "fully accessible". State what was addressed and know
 - **Testing.** Add and run automated accessibility tests unless the project explicitly opts out. Writing or configuring a test is not enough — execution, fixes, and a result report are part of the deliverable. **The final automated test run must be on the exact artifact you submit: any edit after a passing test invalidates that test, so re-run before submitting.** **Open `references/testing.md` before writing any test code** for the opt-out signals, strategy precedence, and reporting rules.
   - **Web:** Prefer `@axe-core/*` bindings that match the existing test runner; render the component/page fully so interactive state, focus, and live regions are evaluated.
   - **Other platforms:** Use the platform's native audit (Android `AccessibilityChecks`, iOS `XCUIAccessibilityAudit`, .NET `AccessibilityInsights`) under the same precedence.
-- **Specs/Documentation.** Follow the project's documentation pattern and document accessibility considerations for each view, component, and interaction. → `references/specs-documentation.md`.
+- **Specs/Documentation.** Follow the project's documentation pattern; the accessibility contract lives in the feature's own spec. → `references/spec-driven-development.md` (workflow, phase mapping), `references/specs-documentation.md` (content items, template).
 

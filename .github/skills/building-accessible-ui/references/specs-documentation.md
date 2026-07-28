@@ -2,6 +2,8 @@
 
 Put accessibility intent in the same spec as the feature it describes, not a separate a11y doc that drifts. The contract should be concrete enough for a reviewer or AI to implement and test against without guessing.
 
+For *when* to write the contract and how it splits across multi-phase spec-driven workflows (Kiro, spec-kit), see `references/spec-driven-development.md`. This file covers *what* the contract contains.
+
 A fillable feature-spec template and a worked example are sidecar files. Both show a full feature spec with accessibility embedded as one section — not a standalone a11y doc:
 
 - Template: `references/specs-documentation.template.md`
@@ -11,7 +13,7 @@ A fillable feature-spec template and a worked example are sidecar files. Both sh
 
 Match the project's existing documentation pattern.
 
-- **Spec-driven repos** (`specs/`, `.kiro/specs/`, `design-docs/`, `rfcs/`, ADRs): add an `## Accessibility` section to the feature spec.
+- **Spec-driven repos** (`specs/`, `.kiro/specs/`, `design-docs/`, `rfcs/`, ADRs): add an `## Accessibility` section to the feature spec, or split it across phase files per `references/spec-driven-development.md`.
 - **Component libraries** (Storybook MDX, co-located `README.md`): add a11y notes to the component's doc page.
 - **AI context files** (`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*`, `copilot-instructions.md`): record project-wide conventions (implementation priority, testing tooling, supported AT). Link out to per-feature specs; don't restate them here.
 - **Tickets / PR descriptions**: restate the accessibility acceptance criteria that must still hold.
