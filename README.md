@@ -6,6 +6,32 @@ feature-by-feature under [GitHub spec-kit](https://github.com/github/spec-kit) w
 every UI spec before implementation starts. See [`.specify/memory/constitution.md`](.specify/memory/constitution.md)
 for the project's governing principles.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    OM[Open-Meteo API]
+    Ingest["packages/ingest\n(scheduler)"]
+    DB[("PostgreSQL\nnormalized schema")]
+    Migrate["packages/db\nmigrate + roles.sql"]
+    API["packages/api\n(Fastify)"]
+    Nginx["nginx\n/api/* proxy"]
+    Web["packages/web\n(Vite/React, static)"]
+    Browser(("Browser"))
+
+    OM -- "HTTPS GET, no key" --> Ingest
+    Ingest -- "weather_ingest role\nSELECT + INSERT/UPDATE\non data tables only" --> DB
+    Migrate -- "weather_owner role\nmigrations only" --> DB
+    API -- "weather_api role\nSELECT only, no write grant" --> DB
+    Nginx -- "GET /api/*" --> API
+    Nginx -- "static files" --> Web
+    Browser -- "same-origin requests" --> Nginx
+```
+
+Three least-privilege Postgres roles are the read-only guarantee, not a convention: `weather_api`
+has no write grant on anything, so a bug in the API layer can't become a data-integrity incident.
+See [Database](#database) below and [`packages/db/roles.sql`](packages/db/roles.sql).
+
 ## Quickstart
 
 ```sh
@@ -183,6 +209,15 @@ full list with affected personas):
   trend description.
 - The Hourly view is capped at the next 24 hours in the UI (the API has up to 168 hours available).
 - No offline/service-worker support.
+
+## CI/CD
+
+- **`.github/workflows/ci.yml`** — every push/PR: lint (incl. the 600-line ceiling) → typecheck →
+  format check → migrate/roles/seed against a `postgres:16` service container → unit/integration
+  tests → schema smoke check → `e2e` job (builds and runs the full `docker compose` stack, then
+  the Playwright + axe suite against it, uploading the HTML report as an artifact).
+- **`.github/workflows/release.yml`** — on a `vX.Y.Z` tag: builds and pushes `migrate`/`api`/
+  `ingest`/`web` images to `ghcr.io/<repo>-<service>`, tagged with the version and commit SHA.
 
 ## Specs
 
