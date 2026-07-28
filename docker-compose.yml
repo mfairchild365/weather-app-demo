@@ -1,0 +1,45 @@
+name: weather-demo
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-weather_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required, see .env.example}
+      POSTGRES_DB: ${POSTGRES_DB:-weather_demo}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-weather_owner} -d ${POSTGRES_DB:-weather_demo}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Bound to localhost only — this is a local/demo convenience for `psql`/GUI clients, not a
+    # public port. The only public surfaces are the api/web services (added in later features),
+    # which connect over the compose network, not this host mapping. Host port is configurable
+    # (default 55432) so it doesn't collide with a Postgres already running on the default 5432.
+    ports:
+      - '127.0.0.1:${POSTGRES_HOST_PORT:-55432}:5432'
+
+  # One-shot: applies migrations, roles/grants, and the starter seed, then exits (see
+  # docker/migrate-entrypoint.sh). Everything that depends on schema being present waits on this
+  # service completing successfully, never on `postgres` alone.
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL_OWNER: postgresql://${POSTGRES_USER:-weather_owner}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-weather_demo}
+      WEATHER_INGEST_PASSWORD: ${WEATHER_INGEST_PASSWORD:?WEATHER_INGEST_PASSWORD is required, see .env.example}
+      WEATHER_API_PASSWORD: ${WEATHER_API_PASSWORD:?WEATHER_API_PASSWORD is required, see .env.example}
+
+volumes:
+  postgres-data:

@@ -1,0 +1,25 @@
+# One-shot database setup image: applies migrations, roles/grants, and the starter seed, then
+# exits. Runs before any other service in docker-compose.yml (constitution: schema changes are
+# always migration-driven, never `drizzle-kit push`).
+
+FROM node:22-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY packages/db/package.json packages/db/package.json
+COPY packages/api/package.json packages/api/package.json
+COPY packages/ingest/package.json packages/ingest/package.json
+COPY packages/ui/package.json packages/ui/package.json
+COPY packages/web/package.json packages/web/package.json
+RUN npm ci
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=deps /app/node_modules ./node_modules
+COPY tsconfig.base.json ./
+COPY packages/db ./packages/db
+COPY docker/migrate-entrypoint.sh ./migrate-entrypoint.sh
+RUN chown -R node:node /app
+USER node
+
+CMD ["sh", "./migrate-entrypoint.sh"]

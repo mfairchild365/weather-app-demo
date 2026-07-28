@@ -1,5 +1,8 @@
 .DS_Store
 
+# spec-kit local session state (which feature is "active" in this checkout) — not a repo artifact
+.specify/feature.json
+
 # dependencies
 node_modules/
 
