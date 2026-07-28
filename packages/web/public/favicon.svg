@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Probably Weather">
+  <style>
+    .mascot { fill: none; stroke: #0f766e; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .dot { fill: #0f766e; stroke: none; }
+    @media (prefers-color-scheme: dark) {
+      .mascot { stroke: #5eead4; }
+      .dot { fill: #5eead4; }
+    }
+  </style>
+  <path class="mascot" d="M6.5 17.5a4 4 0 0 1-.5-7.97 5 5 0 0 1 9.53-2.03A4.5 4.5 0 0 1 18 16.5" />
+  <path class="mascot" d="M6.5 17.5h11" />
+  <circle class="dot" cx="9.5" cy="13" r="0.6" />
+  <circle class="dot" cx="14.5" cy="13" r="0.6" />
+  <path class="mascot" d="M9.5 15.5h5" />
+</svg>

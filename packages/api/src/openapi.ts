@@ -12,8 +12,9 @@ export async function registerOpenApi(app: FastifyInstance): Promise<void> {
   await app.register(swagger, {
     openapi: {
       info: {
-        title: 'weather-demo API',
-        description: 'Read-only weather data for the seeded cities — GET routes only.',
+        title: 'Probably Weather API',
+        description:
+          'Read-only weather data for the seeded cities — GET routes only. Accuracy not guaranteed, but neither is anyone else\'s.',
         version: '0.1.0',
       },
     },

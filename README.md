@@ -1,6 +1,7 @@
-# weather-demo
+# Probably Weather
 
-An accessible, spec-driven weather forecast portfolio demo: React + Node.js + PostgreSQL, built
+An accessible, spec-driven weather forecast portfolio demo (workspace/package name: `weather-demo`):
+React + Node.js + PostgreSQL, built
 feature-by-feature under [GitHub spec-kit](https://github.com/github/spec-kit) with a
 [WCAG 2.2 AA accessibility contract](.github/skills/building-accessible-ui/SKILL.md) required in
 every UI spec before implementation starts. See [`.specify/memory/constitution.md`](.specify/memory/constitution.md)
@@ -200,6 +201,15 @@ rendering makes color-contrast checks unreliable there. Fixed by underlining the
 recoloring it. This is why both test tiers exist: component-level axe scans catch structural
 issues fast, but real color-contrast verification needs a real rendering engine.
 
+A second gap, caught this time by computing ratios directly rather than by axe: `004`'s new teal
+accent, plugged into the *existing* primary `Button` variant's hardcoded `text-white`, dropped to
+1.48:1 in the dark theme — worse than the 2.54:1 the original blue accent already had (a
+pre-existing, unnoticed failure below the 4.5:1 AA threshold). Fixed by making the button's text
+color `var(--color-bg)` instead of a literal white — `--color-focus` and `--color-bg` invert
+together between themes, so the pairing holds >=4.5:1 in both (verified in `tokens.test.ts`, not
+eyeballed). A lesson for future palette swaps: re-verify every token's *downstream* usages, not
+just the token's own contrast against page backgrounds.
+
 **Known limitations** (no "fully accessible" claim — see each spec's `known_limitations` for the
 full list with affected personas):
 
@@ -209,6 +219,11 @@ full list with affected personas):
   trend description.
 - The Hourly view is capped at the next 24 hours in the UI (the API has up to 168 hours available).
 - No offline/service-worker support.
+- The site's deadpan-forecaster copy (spec `004-probably-weather-personality`) can be misread by
+  some cognitive and neurodivergent users, and by non-native English readers, who may take a wry
+  line literally or find it unclear. Every joke line keeps its plain-language fact directly
+  adjacent — no information is ever *only* available via the joke — but the risk of misreading
+  isn't eliminated.
 
 ## CI/CD
 
@@ -230,3 +245,5 @@ spec-kit:
   worker and read-only API
 - [`specs/003-accessible-forecast-browser`](specs/003-accessible-forecast-browser/spec.md) —
   the public SPA, with its full accessibility contract
+- [`specs/004-probably-weather-personality`](specs/004-probably-weather-personality/spec.md) —
+  the "Probably Weather" voice, visual identity, and weather icons — a re-skin, not a rebuild

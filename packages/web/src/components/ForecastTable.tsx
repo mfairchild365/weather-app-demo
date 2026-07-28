@@ -1,5 +1,16 @@
-import { Table, TableRow, TableCell, SparklineChart } from '@weather-demo/ui';
+import { Table, TableRow, TableCell, SparklineChart, WeatherIcon } from '@weather-demo/ui';
 import type { ForecastHourlyRow, ForecastDailyRow } from '../lib/api-client';
+
+/** spec 004 FR-004: decorative icon beside the existing weatherLabel text — the label remains the
+ * sole accessible source of the condition (FR-005). */
+function ConditionCell({ iconKey, label }: { iconKey: string; label: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      <WeatherIcon iconKey={iconKey} className="h-5 w-5 shrink-0" />
+      {label}
+    </span>
+  );
+}
 
 export interface ForecastTableProps {
   cityName: string;
@@ -46,7 +57,9 @@ export function ForecastTable({
             <TableRow key={row.validAt}>
               <TableCell>{formatHour(row.validAt)}</TableCell>
               <TableCell>{Math.round(row.temperature)}</TableCell>
-              <TableCell>{row.weatherLabel}</TableCell>
+              <TableCell>
+                <ConditionCell iconKey={row.weatherIconKey} label={row.weatherLabel} />
+              </TableCell>
               <TableCell>
                 {row.precipitationProbability === null
                   ? '—'
@@ -71,7 +84,9 @@ export function ForecastTable({
             <TableCell>{formatDay(row.validDate)}</TableCell>
             <TableCell>{Math.round(row.temperatureMax)}</TableCell>
             <TableCell>{Math.round(row.temperatureMin)}</TableCell>
-            <TableCell>{row.weatherLabel}</TableCell>
+            <TableCell>
+              <ConditionCell iconKey={row.weatherIconKey} label={row.weatherLabel} />
+            </TableCell>
           </TableRow>
         ))}
       </Table>

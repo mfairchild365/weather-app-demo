@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SearchField, StatusMessage, Button } from '@weather-demo/ui';
 import { useCities } from '../hooks/useCities';
+import { copy } from '../copy';
 
 /** spec status_messages: #city-list-status (polite) / #city-list-error (alert). */
 export function CityListPage() {
@@ -21,7 +22,7 @@ export function CityListPage() {
   const [countMessage, setCountMessage] = useState('');
 
   useEffect(() => {
-    document.title = 'weather-demo';
+    document.title = copy.tabTitle;
   }, []);
 
   useEffect(() => {
@@ -33,24 +34,24 @@ export function CityListPage() {
     // "chatty regions" pitfall.
     const timer = setTimeout(() => {
       const trimmed = query.trim();
-      const noun = filtered.length === 1 ? 'city' : 'cities';
-      if (trimmed && filtered.length === 0) {
-        setCountMessage(`No cities match "${trimmed}".`);
-      } else if (trimmed) {
-        setCountMessage(`${filtered.length} ${noun} matching "${trimmed}"`);
+      const easterEgg = copy.EASTER_EGGS[trimmed.toLowerCase()];
+      if (easterEgg) {
+        setCountMessage(easterEgg);
+      } else if (trimmed && filtered.length === 0) {
+        setCountMessage(copy.noMatches(trimmed));
       } else {
-        setCountMessage(`${filtered.length} ${noun}`);
+        setCountMessage(copy.cityCount(filtered.length, trimmed));
       }
     }, 300);
     return () => clearTimeout(timer);
   }, [result.status, filtered, query]);
 
-  const loadingMessage = result.status === 'loading' ? 'Loading cities…' : '';
-  const errorMessage = result.status === 'error' ? "Couldn't load cities." : '';
+  const loadingMessage = result.status === 'loading' ? copy.loading : '';
+  const errorMessage = result.status === 'error' ? copy.citiesError : '';
 
   return (
     <>
-      <h1 className="mb-4 text-2xl font-bold">Weather forecasts</h1>
+      <h1 className="mb-4 font-display text-2xl font-bold">{copy.listHeading}</h1>
 
       <SearchField
         label="Search cities"

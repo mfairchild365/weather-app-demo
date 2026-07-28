@@ -5,3 +5,5 @@ export { SearchField, type SearchFieldProps } from './SearchField';
 export { Tabs, type TabsProps, type TabItem } from './Tabs';
 export { Table, TableRow, TableCell } from './Table';
 export { SparklineChart, type SparklineChartProps } from './SparklineChart';
+export { WeatherIcon, type WeatherIconProps, type WeatherIconKey } from './WeatherIcon';
+export { Mascot, type MascotProps } from './Mascot';

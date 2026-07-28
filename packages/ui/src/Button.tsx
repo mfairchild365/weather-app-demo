@@ -13,7 +13,11 @@ const BASE =
   'disabled:cursor-not-allowed disabled:opacity-60';
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-[var(--color-focus)] text-white hover:opacity-90',
+  // text-[var(--color-bg)], not hardcoded white: --color-focus inverts between a dark teal (light
+  // theme) and a bright teal (dark theme), so pairing it with --color-bg (white / near-black,
+  // also inverted) keeps this button's text >=4.5:1 in both themes — a hardcoded white text
+  // color failed WCAG AA against the dark-theme accent (spec 004; see tokens.test.ts).
+  primary: 'bg-[var(--color-focus)] text-[var(--color-bg)] hover:opacity-90',
   secondary:
     'bg-transparent text-[var(--color-text)] border border-[var(--color-border)] hover:bg-[var(--color-surface)]',
 };

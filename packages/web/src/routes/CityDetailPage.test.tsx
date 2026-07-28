@@ -143,7 +143,9 @@ describe('CityDetailPage', () => {
     }) as typeof fetch;
 
     renderAt('/cities/tokyo-jp');
-    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load forecast for Tokyo.");
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      "The sky is not returning our calls. Couldn't load forecast for Tokyo.",
+    );
 
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Retry loading forecast' }));

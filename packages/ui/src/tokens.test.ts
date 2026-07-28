@@ -8,8 +8,9 @@ const LIGHT = {
   bg: '#ffffff',
   text: '#1a1a1a',
   mutedText: '#4b5563',
-  link: '#1d4ed8',
-  focus: '#2563eb',
+  accent: '#0f766e',
+  link: '#115e59',
+  focus: '#0f766e',
   danger: '#b91c1c',
 };
 
@@ -17,8 +18,9 @@ const DARK = {
   bg: '#0f1115',
   text: '#f3f4f6',
   mutedText: '#9ca3af',
-  link: '#93c5fd',
-  focus: '#60a5fa',
+  accent: '#5eead4',
+  link: '#5eead4',
+  focus: '#5eead4',
   danger: '#f87171',
 };
 
@@ -51,14 +53,18 @@ describe('design token contrast (WCAG 2.2 AA)', () => {
   it.each([
     ['light text/bg', LIGHT.text, LIGHT.bg, 4.5],
     ['light muted-text/bg', LIGHT.mutedText, LIGHT.bg, 4.5],
+    ['light accent/bg', LIGHT.accent, LIGHT.bg, 4.5],
     ['light link/bg', LIGHT.link, LIGHT.bg, 4.5],
     ['light danger/bg', LIGHT.danger, LIGHT.bg, 4.5],
     ['light focus/bg (non-text)', LIGHT.focus, LIGHT.bg, 3],
+    ['light bg-on-focus (primary Button text)', LIGHT.bg, LIGHT.focus, 4.5],
     ['dark text/bg', DARK.text, DARK.bg, 4.5],
     ['dark muted-text/bg', DARK.mutedText, DARK.bg, 4.5],
+    ['dark accent/bg', DARK.accent, DARK.bg, 4.5],
     ['dark link/bg', DARK.link, DARK.bg, 4.5],
     ['dark danger/bg', DARK.danger, DARK.bg, 4.5],
     ['dark focus/bg (non-text)', DARK.focus, DARK.bg, 3],
+    ['dark bg-on-focus (primary Button text)', DARK.bg, DARK.focus, 4.5],
   ])('%s meets its threshold', (_label, fg, bg, minRatio) => {
     expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(minRatio);
   });

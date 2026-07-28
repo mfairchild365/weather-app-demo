@@ -7,8 +7,10 @@
  * Body text / --color-bg            >= 4.5:1
  * --color-muted-text / --color-bg   >= 4.5:1 (used for secondary text, e.g. freshness captions)
  * --color-link / --color-bg         >= 4.5:1
+ * --color-accent / --color-bg       >= 4.5:1 (decorative accent used as text, e.g. focus outline color reused inline)
  * --color-danger / --color-bg       >= 4.5:1 (error text)
  * --color-focus / --color-bg        >= 3:1   (focus indicators; non-text)
+ * --color-bg / --color-focus        >= 4.5:1 (primary Button text-on-accent — Button.tsx)
  */
 
 :root {
@@ -16,9 +18,12 @@
   --color-surface: #f8fafc;
   --color-text: #1a1a1a;
   --color-muted-text: #4b5563;
-  --color-link: #1d4ed8;
+  /* spec 004: muted deep teal replaces the generic blue accent, in the same tokens (never
+     renamed — references/contrast-forced-colors.md fixes these names as the contract). */
+  --color-accent: #0f766e;
+  --color-link: #115e59;
   --color-border: #d1d5db;
-  --color-focus: #2563eb;
+  --color-focus: #0f766e;
   --color-danger: #b91c1c;
   --color-danger-bg: #fef2f2;
   --color-success: #15803d;
@@ -30,9 +35,10 @@
     --color-surface: #1a1d23;
     --color-text: #f3f4f6;
     --color-muted-text: #9ca3af;
-    --color-link: #93c5fd;
+    --color-accent: #5eead4;
+    --color-link: #5eead4;
     --color-border: #374151;
-    --color-focus: #60a5fa;
+    --color-focus: #5eead4;
     --color-danger: #f87171;
     --color-danger-bg: #2a1414;
     --color-success: #4ade80;

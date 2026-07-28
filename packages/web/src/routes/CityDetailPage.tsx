@@ -5,6 +5,7 @@ import { useCityDetail } from '../hooks/useCityDetail';
 import { useForecast } from '../hooks/useForecast';
 import { CurrentConditions } from '../components/CurrentConditions';
 import { ForecastTable } from '../components/ForecastTable';
+import { copy } from '../copy';
 
 /** spec status_messages: #city-detail-status (polite) / #city-detail-error (alert); FR-008: a
  * distinct "City not found" state, not the generic error+retry treatment. */
@@ -16,16 +17,14 @@ export function CityDetailPage() {
 
   useEffect(() => {
     document.title =
-      detail.status === 'success' ? `${detail.data.name} forecast — weather-demo` : 'weather-demo';
+      detail.status === 'success' ? copy.cityDetailTitle(detail.data.name) : copy.tabTitle;
   }, [detail]);
 
   if (detail.status === 'error' && detail.error.status === 404) {
     return (
       <div>
-        <h1 className="mb-4 text-2xl font-bold">City not found</h1>
-        <p className="mb-4 text-[var(--color-muted-text)]">
-          We couldn&apos;t find a city at this address.
-        </p>
+        <h1 className="mb-4 font-display text-2xl font-bold">{copy.cityNotFoundHeading}</h1>
+        <p className="mb-4 text-[var(--color-muted-text)]">{copy.cityNotFoundBody}</p>
         <Link to="/" className="text-[var(--color-link)] underline-offset-2 hover:underline">
           Back to city list
         </Link>
@@ -45,20 +44,20 @@ export function CityDetailPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold">
+      <h1 className="mb-4 font-display text-2xl font-bold">
         {detail.status === 'success' ? `${detail.data.name} forecast` : 'Forecast'}
       </h1>
 
       <StatusMessage
         id="city-detail-status"
         politeness="status"
-        message={isLoading ? 'Loading forecast…' : ''}
+        message={isLoading ? copy.loading : ''}
         className="mb-4 text-sm text-[var(--color-muted-text)]"
       />
       <StatusMessage
         id="city-detail-error"
         politeness="alert"
-        message={hasError ? `Couldn't load forecast for ${cityName}.` : ''}
+        message={hasError ? copy.forecastError(cityName) : ''}
         className="mb-2 font-medium text-[var(--color-danger)]"
       />
 

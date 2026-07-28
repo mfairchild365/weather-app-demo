@@ -66,7 +66,35 @@ describe('CityListPage', () => {
     await user.type(screen.getByRole('searchbox', { name: 'Search cities' }), 'zzz');
 
     await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent('No cities match "zzz".'),
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Nothing matched "zzz". Bold search. Zero results.',
+      ),
+    );
+  });
+
+  it('announces a dry line instead of the generic message for the "xyzzy" easter egg (FR-010)', async () => {
+    stubFetchSuccess();
+    renderPage();
+    await screen.findByRole('link', { name: 'Tokyo, Japan' });
+
+    const user = userEvent.setup();
+    await user.type(screen.getByRole('searchbox', { name: 'Search cities' }), 'xyzzy');
+
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Nothing here. You knew that.'),
+    );
+  });
+
+  it('announces a dry line instead of the generic message for the "atlantis" easter egg (FR-010)', async () => {
+    stubFetchSuccess();
+    renderPage();
+    await screen.findByRole('link', { name: 'Tokyo, Japan' });
+
+    const user = userEvent.setup();
+    await user.type(screen.getByRole('searchbox', { name: 'Search cities' }), 'Atlantis');
+
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Submerged. Forecast unavailable.'),
     );
   });
 
@@ -79,7 +107,9 @@ describe('CityListPage', () => {
     }) as typeof fetch;
 
     renderPage();
-    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load cities.");
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      "The sky is not returning our calls. Couldn't load cities.",
+    );
 
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Retry loading cities' }));

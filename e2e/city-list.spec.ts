@@ -4,7 +4,7 @@ import { seriousOrCriticalViolations } from './axe-helper';
 test.describe('city list page', () => {
   test('lists cities and links to a city page (Acceptance Scenario US1.1)', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Weather forecasts' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Probably Weather' })).toBeVisible();
     const link = page.getByRole('link', { name: /Tokyo, Japan/ });
     await expect(link).toBeVisible();
   });
@@ -21,7 +21,9 @@ test.describe('city list page', () => {
   test('shows a "no matches" message for a query with no results (US1.3)', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('searchbox', { name: 'Search cities' }).fill('zzzznotacity');
-    await expect(page.locator('#city-list-status')).toHaveText('No cities match "zzzznotacity".');
+    await expect(page.locator('#city-list-status')).toHaveText(
+      'Nothing matched "zzzznotacity". Bold search. Zero results.',
+    );
   });
 
   test('has no serious or critical axe violations (default state)', async ({ page }) => {
@@ -35,7 +37,7 @@ test.describe('city list page', () => {
   }) => {
     await page.goto('/');
     await page.getByRole('searchbox', { name: 'Search cities' }).fill('zzzznotacity');
-    await expect(page.locator('#city-list-status')).toContainText('No cities match');
+    await expect(page.locator('#city-list-status')).toContainText('Nothing matched');
     expect(await seriousOrCriticalViolations(page)).toEqual([]);
   });
 });

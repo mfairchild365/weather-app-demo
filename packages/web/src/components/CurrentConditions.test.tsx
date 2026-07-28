@@ -24,6 +24,20 @@ describe('CurrentConditions', () => {
     expect(screen.getByText('23°C')).toBeInTheDocument();
   });
 
+  it('renders a decorative weather icon beside the label (spec 004 FR-004/FR-005)', () => {
+    const { container } = render(
+      <CurrentConditions observation={OBSERVATION} dataAsOf="2026-07-27T12:05:00.000Z" />,
+    );
+    const icon = container.querySelector('svg');
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('renders a deterministic verdict line as plain content, not a live region (spec 004 FR-009)', () => {
+    render(<CurrentConditions observation={OBSERVATION} dataAsOf="2026-07-27T12:05:00.000Z" />);
+    const verdict = screen.getByText(/23°C\. Clear skies\./);
+    expect(verdict.closest('[role="status"], [role="alert"]')).toBeNull();
+  });
+
   it('shows an explicit "no data yet" state instead of blank UI (Acceptance Scenario US2.2)', () => {
     render(<CurrentConditions observation={null} dataAsOf={null} />);
     expect(screen.getByText('No current conditions yet.')).toBeInTheDocument();
