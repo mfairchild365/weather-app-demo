@@ -57,7 +57,10 @@ jobs:
       # packages/db/src/{migrate,apply-roles,seed}.test.ts exercise these same operations against
       # TEST_DATABASE_URL, but the suite doesn't provision a fresh database on its own — apply
       # migrations/roles/seed against the service container first so both the tests and the
-      # smoke check below have real schema and data to work with.
+      # smoke check below have real schema and data to work with. `npm test` below also covers
+      # packages/ingest and packages/api's suites automatically (vitest.config.ts globs every
+      # workspace package), including the assertion that no API route accepts a data-mutating
+      # method (spec 002 FR-007/SC-003).
       - name: Apply database migrations
         run: npm run db:migrate
 

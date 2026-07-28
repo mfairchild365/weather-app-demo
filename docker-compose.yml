@@ -41,5 +41,35 @@ services:
       WEATHER_INGEST_PASSWORD: ${WEATHER_INGEST_PASSWORD:?WEATHER_INGEST_PASSWORD is required, see .env.example}
       WEATHER_API_PASSWORD: ${WEATHER_API_PASSWORD:?WEATHER_API_PASSWORD is required, see .env.example}
 
+  # Long-running: fetches Open-Meteo data on a schedule using the weather_ingest role only
+  # (SELECT everywhere, INSERT/UPDATE only on the tables it populates — see packages/db/roles.sql).
+  ingest:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ingest
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL_INGEST: postgresql://weather_ingest:${WEATHER_INGEST_PASSWORD}@postgres:5432/${POSTGRES_DB:-weather_demo}
+
+  # Public, read-only JSON API using the weather_api role only (SELECT everywhere, no write grant
+  # exists for it at all — see packages/db/roles.sql). This is the one service meant to be
+  # reachable from outside the compose network.
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL_API: postgresql://weather_api:${WEATHER_API_PASSWORD}@postgres:5432/${POSTGRES_DB:-weather_demo}
+      PORT: '3000'
+    ports:
+      - '${API_HOST_PORT:-3000}:3000'
+
 volumes:
   postgres-data:

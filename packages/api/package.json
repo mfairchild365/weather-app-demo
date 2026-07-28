@@ -3,10 +3,21 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "main": "./src/index.ts",
+  "main": "./src/server.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "start": "tsx src/server.ts"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "@fastify/swagger": "^9.4.2",
+    "@fastify/swagger-ui": "^5.2.1",
+    "@weather-demo/db": "*",
+    "fastify": "^5.2.1",
+    "fastify-type-provider-zod": "^4.0.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
 }

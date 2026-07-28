@@ -15,11 +15,20 @@ docker compose up --build
 
 That builds and starts Postgres, then runs a one-shot `migrate` service that applies schema
 migrations, creates the least-privilege database roles, and seeds a starter set of cities. Once
-`migrate` exits `0`, the database is ready. (Later features add `api` and `web` services to this
-same compose file; for now this stack is the database layer only — see
-[specs/001-platform-foundation-npm](specs/001-platform-foundation-npm/spec.md).)
+`migrate` exits `0`, two long-running services start: `ingest` (fetches every seeded city's current
+conditions and forecast from Open-Meteo immediately, then hourly) and `api` (serves that data
+read-only at `http://localhost:3000`). `web` is added in `003-forecast-browser`.
 
-Inspect the result:
+Try it:
+
+```sh
+curl http://localhost:3000/api/cities
+curl http://localhost:3000/api/cities/tokyo-jp
+curl 'http://localhost:3000/api/cities/tokyo-jp/forecast?range=hourly'
+curl http://localhost:3000/api/meta/freshness
+```
+
+Browse the API docs at `http://localhost:3000/api/docs`, or inspect the database directly:
 
 ```sh
 docker exec -it weather-demo-postgres-1 psql -U weather_owner -d weather_demo -c '\dt'
@@ -32,13 +41,13 @@ npm workspaces monorepo; every package under `packages/` has its own `package.js
 `tsconfig.json` (extending the shared [`tsconfig.base.json`](tsconfig.base.json)) and is picked up
 automatically by the root `lint` / `typecheck` / `test` scripts — no per-package wiring needed.
 
-| Package           | Purpose                                                                                           |
-| ----------------- | ------------------------------------------------------------------------------------------------- |
-| `packages/db`     | Drizzle ORM schema, checked-in SQL migrations, least-privilege role setup, seed data              |
-| `packages/api`    | Fastify REST API (read-only `GET` routes only) — added in `002-weather-ingestion`                 |
-| `packages/ingest` | Scheduled worker that pulls weather data from Open-Meteo — added in `002-weather-ingestion`       |
-| `packages/ui`     | Accessible component library (React Aria Components + Tailwind) — added in `003-forecast-browser` |
-| `packages/web`    | The Vite/React SPA — added in `003-forecast-browser`                                              |
+| Package           | Purpose                                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| `packages/db`     | Drizzle ORM schema, checked-in SQL migrations, least-privilege role setup, seed data, repositories |
+| `packages/api`    | Fastify REST API (read-only `GET` routes only, OpenAPI docs at `/api/docs`)                        |
+| `packages/ingest` | Scheduled worker that pulls weather data from Open-Meteo (on boot, then hourly)                    |
+| `packages/ui`     | Accessible component library (React Aria Components + Tailwind) — added in `003-forecast-browser`  |
+| `packages/web`    | The Vite/React SPA — added in `003-forecast-browser`                                               |
 
 Adding a new package: create `packages/<name>/package.json` (with a `typecheck` script) and
 `tsconfig.json` extending `../../tsconfig.base.json`; `npm install` at the root links it, no
@@ -74,7 +83,30 @@ npm test
   future). See [`packages/db/roles.sql`](packages/db/roles.sql) and
   [`packages/db/src/apply-roles.ts`](packages/db/src/apply-roles.ts).
 - Weather data is never written by user request — only by the scheduled ingestion worker
-  (`packages/ingest`, added in `002-weather-ingestion`).
+  (`packages/ingest`).
+
+## API
+
+Every route is `GET`; an automated test (`packages/api/src/app.test.ts`) fails the build if any
+route ever accepts `POST`/`PUT`/`PATCH`/`DELETE`.
+
+| Route                                                | Description                                                                                            |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `GET /api/health`                                    | Liveness check                                                                                         |
+| `GET /api/cities`                                    | Every seeded city, with its region                                                                     |
+| `GET /api/cities/:slug`                              | City detail, latest observation, and when it was last refreshed                                        |
+| `GET /api/cities/:slug/forecast?range=hourly\|daily` | Forecast rows for that city                                                                            |
+| `GET /api/meta/freshness`                            | Provider name and the most recent successful ingest run                                                |
+| `GET /api/docs` / `GET /api/openapi.json`            | Browsable / machine-readable API docs, generated from the same zod schemas that validate every request |
+
+## Ingestion
+
+`packages/ingest` fetches current conditions plus 7 days of hourly and daily forecast from
+[Open-Meteo](https://open-meteo.com/) for every city in `cities`, immediately on start and then
+hourly. Each run writes one `ingest_runs` row; a single city's failure (network error or a response
+that fails schema validation) is recorded and skipped without stopping the rest of the cycle or
+crashing the worker. Re-ingesting the same city upserts on each table's unique (city, valid-time)
+constraint, so re-running never duplicates rows.
 
 ## Accessibility
 
@@ -88,4 +120,9 @@ feature's spec.
 ## Specs
 
 Each feature is planned under `specs/NNN-<slug>/` (`spec.md` → `plan.md` → `tasks.md`) via
-spec-kit. Start with [`specs/001-platform-foundation-npm`](specs/001-platform-foundation-npm/spec.md).
+spec-kit:
+
+- [`specs/001-platform-foundation-npm`](specs/001-platform-foundation-npm/spec.md) — monorepo,
+  schema, roles, Docker, base CI
+- [`specs/002-weather-ingestion-worker`](specs/002-weather-ingestion-worker/spec.md) — ingestion
+  worker and read-only API

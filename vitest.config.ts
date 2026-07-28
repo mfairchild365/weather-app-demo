@@ -5,6 +5,11 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/dist/**'],
     globals: false,
     testTimeout: 15000,
+    // Integration test files across packages/{db,api,ingest} share one live Postgres instance and
+    // several independently call runMigrations()/seed() in beforeAll; running files in parallel
+    // races those DDL/upsert statements against each other. Sequential file execution trades some
+    // wall-clock speed for correctness here, and matches how CI runs the suite (one process).
+    fileParallelism: false,
     projects: [
       {
         extends: true,

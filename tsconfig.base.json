@@ -3,8 +3,12 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    // Bundler resolution (not NodeNext) project-wide: every package here runs via tsx (never
+    // `node dist/*.js`), and tsx's loader resolves extensionless relative imports the same way a
+    // bundler would. This also lets a consuming package (e.g. ingest importing @weather-demo/db's
+    // source directly, unbuilt) typecheck under one consistent resolution mode instead of two.
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
