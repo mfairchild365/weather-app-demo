@@ -74,9 +74,9 @@ packages/ui/src/
 ├── SkipLink.tsx                  # native <a>, first focusable element
 ├── SearchField.tsx                # wraps React Aria SearchField
 ├── Tabs.tsx                       # wraps React Aria Tabs/TabList/Tab/TabPanel
-├── Table.tsx                      # thin styled native <table>/<caption>/<th> wrappers
+├── Table.tsx                      # thin styled native <table>/<caption>/<th scope=col|row> wrappers
 ├── StatusMessage.tsx               # role="status" | "alert" live region primitive
-├── SparklineChart.tsx              # decorative inline SVG, aria-hidden
+├── SparklineChart.tsx              # inline SVG, role="img" + short aria-label pointing to table
 ├── Button.tsx                      # wraps React Aria Button
 ├── tokens.css                      # design tokens (CSS custom properties) — contrast-checked
 └── index.ts                        # barrel export

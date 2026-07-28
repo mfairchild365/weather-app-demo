@@ -10,9 +10,9 @@ export interface TableProps {
 }
 
 /**
- * Thin styled wrapper around native `<table>`/`<caption>`/`<th scope="col">` for static tabular
- * data (references/tables-grids.md) — not an interactive grid, which this project has no need
- * for.
+ * Thin styled wrapper around native `<table>`/`<caption>`/`<th scope="col">` (and, via
+ * `TableRowHeader`, `<th scope="row">`) for static tabular data (references/tables-grids.md) —
+ * not an interactive grid, which this project has no need for.
  */
 export function Table({ caption, columns, children, className = '' }: TableProps) {
   return (
@@ -48,4 +48,21 @@ export interface TableCellProps {
 
 export function TableCell({ children }: TableCellProps) {
   return <td className="px-3 py-2">{children}</td>;
+}
+
+export interface TableRowHeaderProps {
+  children: ReactNode;
+}
+
+/**
+ * `<th scope="row">` for the first cell of a data row (references/tables-grids.md) — lets AT
+ * announce the row's identifying value (e.g. the time or day) when reading any other cell in
+ * that row. Styled to match `TableCell` since browsers bold/center `<th>` by default.
+ */
+export function TableRowHeader({ children }: TableRowHeaderProps) {
+  return (
+    <th scope="row" className="px-3 py-2 text-left font-normal">
+      {children}
+    </th>
+  );
 }

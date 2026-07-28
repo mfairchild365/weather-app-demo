@@ -124,7 +124,8 @@ a working skip link as the first stop.
 - **FR-005**: The city detail page MUST provide Hourly and Daily forecast views behind a tab
   interface; the Hourly view shows the next 24 hours, the Daily view shows all 7 available days.
 - **FR-006**: Each forecast view MUST render its data as an accessible `<table>` with a caption
-  naming the city and range, plus a decorative (non-data-bearing) chart that is `aria-hidden`; the
+  naming the city and range, and each row's first cell as a `<th scope="row">`, plus a chart with
+  an accessible name of the form "Chart of {city} {range} temperature, data in table below"; the
   table is the sole source of truth for the data — nothing is chart-only.
 - **FR-007**: Loading and error states for both pages MUST be communicated via the appropriate
   live region (`status` for loading/progress, `alert` for errors) without moving focus; every
@@ -169,13 +170,14 @@ size, named, and keyboard-operable) but have no feature-specific behavior beyond
 - **Tabs (Hourly/Daily)** — React Aria Components `Tabs`/`TabList`/`Tab`/`TabPanel` (component
   library, ladder tier 2): implements the full WAI-ARIA tablist pattern (roving tabindex, arrow-key
   movement, `aria-selected`/`aria-controls`) without hand-rolling it.
-- **Forecast table** — native `<table>`/`<caption>`/`<th scope="col">` (ladder tier 3), per
-  `references/tables-grids.md` — static tabular data, not an interactive grid.
+- **Forecast table** — native `<table>`/`<caption>`/`<th scope="col">`/`<th scope="row">` (ladder
+  tier 3), per `references/tables-grids.md` — static tabular data, not an interactive grid.
 - **Status/alert live regions** — native `role="status"` / `role="alert"` elements (ladder tier
   3/4), rendered once and mutated, per `references/status-messages.md`.
-- **Decorative chart** — custom inline SVG, `aria-hidden="true"` (ladder tier 5, justified: this
-  is intentionally non-informational decoration paired with the real data in the table right next
-  to it, not a substitute for a data-bearing widget).
+- **Chart** — custom inline SVG, `role="img"` with a short `aria-label` pointing to the table
+  (ladder tier 5, justified: no native element covers a trend line; the label is intentionally
+  short — a pointer to the real data in the table right next to it, not a restatement of every
+  value — per `references/images-graphics.md`'s guidance on complex graphics).
 - **Buttons** (retry, clear-search) — React Aria Components `Button` (component library, ladder
   tier 2) or native `<button>` where React Aria's Button is not already in use on that control.
 

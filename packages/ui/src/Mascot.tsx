@@ -4,9 +4,9 @@ export interface MascotProps {
 
 /**
  * Decorative brand mark — a deadpan little cloud, beside the header's text brand link which
- * already carries the accessible name (spec 004 FR-005). `aria-hidden` (ladder tier 5, justified
- * exactly as `SparklineChart.tsx`'s decorative chart was in spec 003: pure decoration, paired
- * with pre-existing accessible text, never the sole carrier of information). Single-color line
+ * already carries the accessible name (spec 004 FR-005). `aria-hidden` (ladder tier 5, justified:
+ * pure decoration, paired with pre-existing accessible text, never the sole carrier of
+ * information — see references/images-graphics.md's "icon + text pairs"). Single-color line
  * art via `currentColor` only — no hardcoded fills, so it adapts under dark mode and
  * `forced-colors: active` for free (references/contrast-forced-colors.md).
  */

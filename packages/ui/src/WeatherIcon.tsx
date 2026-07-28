@@ -30,15 +30,26 @@ const SUN = (
   </>
 );
 
-const CLOUD_SMALL = <path d="M8 17a3.2 3.2 0 0 1-.4-6.38A4 4 0 0 1 15.4 9.3 3.6 3.6 0 0 1 15 17Z" />;
+const CLOUD_SMALL = (
+  <path d="M8 17a3.2 3.2 0 0 1-.4-6.38A4 4 0 0 1 15.4 9.3 3.6 3.6 0 0 1 15 17Z" />
+);
 
-const CLOUD_BIG = <path d="M6.5 18a4 4 0 0 1-.5-7.97 5 5 0 0 1 9.53-2.03A4.5 4.5 0 0 1 18 17H6.5Z" />;
+const CLOUD_BIG = (
+  <path d="M6.5 18a4 4 0 0 1-.5-7.97 5 5 0 0 1 9.53-2.03A4.5 4.5 0 0 1 18 17H6.5Z" />
+);
 
 const FOG_LINES = <path d="M5 19h14M6.5 21.5h11" />;
 
 /** Small filled droplet mark — currentColor only, no hardcoded fill (references/contrast-forced-colors.md). */
 function drop(x: number, y: number, key: string) {
-  return <path key={key} d={`M${x} ${y}l0.9 1.6a0.9 0.9 0 1 1-1.8 0Z`} fill="currentColor" stroke="none" />;
+  return (
+    <path
+      key={key}
+      d={`M${x} ${y}l0.9 1.6a0.9 0.9 0 1 1-1.8 0Z`}
+      fill="currentColor"
+      stroke="none"
+    />
+  );
 }
 
 function flake(x: number, y: number, key: string) {
@@ -55,7 +66,9 @@ function hail(x: number, y: number, key: string) {
   return <circle key={key} cx={x} cy={y} r={0.55} fill="currentColor" stroke="none" />;
 }
 
-const BOLT = <path d="M12.5 13.5h-2.2l1.7-4.2-4 5.7h2.3l-1.6 4Z" fill="currentColor" stroke="none" />;
+const BOLT = (
+  <path d="M12.5 13.5h-2.2l1.7-4.2-4 5.7h2.3l-1.6 4Z" fill="currentColor" stroke="none" />
+);
 
 /** Body for each recognized `iconKey`; the fallback (a plain cloud with a "?" mark) covers any
  * value not in this table — a future seed-data code added ahead of this file's update. */
@@ -175,8 +188,8 @@ function bodyFor(iconKey: string): ReactNode {
 /**
  * Decorative weather glyph rendered beside the always-present accessible `weatherLabel` text
  * (current conditions and every forecast table row) — never the sole source of the condition
- * (spec 004 FR-004/FR-005). `aria-hidden="true"`, single-color line art via `currentColor` only,
- * matching `SparklineChart.tsx`'s precedent for decorative inline SVG (ladder tier 5, justified).
+ * (spec 004 FR-004/FR-005). `aria-hidden="true"`, single-color line art via `currentColor` only
+ * (ladder tier 5, justified: icon + text pair, see references/images-graphics.md).
  */
 export function WeatherIcon({ iconKey, className = '' }: WeatherIconProps) {
   return (

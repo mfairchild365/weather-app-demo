@@ -1,17 +1,24 @@
 export interface SparklineChartProps {
   values: number[];
+  /** Required (not optional) so every chart names itself — references/images-graphics.md: an
+   * informative `<svg>` needs `role="img"` plus an accessible name. Should read like "Chart of
+   * {thing}, data in table below" so screen reader users know the exact values are available as
+   * text nearby rather than only in this trend line. */
+  label: string;
   width?: number;
   height?: number;
   className?: string;
 }
 
 /**
- * Purely decorative trend line — the same values are always shown as real numbers in an
- * accessible `<table>` right next to this chart (spec FR-006); this component carries no
- * information of its own and MUST stay `aria-hidden` (references/images-graphics.md).
+ * Inline trend line whose exact values are always shown as real numbers in an accessible
+ * `<table>` right next to this chart (spec FR-006) — the `label` is a short pointer to that
+ * table, not a restatement of every value (references/images-graphics.md: complex graphics get a
+ * fuller description available nearby).
  */
 export function SparklineChart({
   values,
+  label,
   width = 240,
   height = 60,
   className = '',
@@ -33,7 +40,8 @@ export function SparklineChart({
 
   return (
     <svg
-      aria-hidden="true"
+      role="img"
+      aria-label={label}
       focusable="false"
       viewBox={`0 0 ${width} ${height}`}
       width={width}

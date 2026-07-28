@@ -50,9 +50,19 @@ describe('ForecastTable', () => {
 
   it('never shows data only in the chart — the table has the same values (FR-006)', () => {
     render(<ForecastTable cityName="Tokyo" range="hourly" hourlyRows={HOURLY} />);
-    const chart = document.querySelector('svg');
-    expect(chart).toHaveAttribute('aria-hidden', 'true');
+    const chart = screen.getByRole('img', {
+      name: 'Chart of Tokyo hourly temperature, data in table below',
+    });
+    expect(chart.tagName).toBe('svg');
     expect(screen.getByRole('table')).toBeInTheDocument();
+  });
+
+  it('marks the first column of each row as a <th scope="row"> row header', () => {
+    render(<ForecastTable cityName="Tokyo" range="hourly" hourlyRows={HOURLY} />);
+    const table = screen.getByRole('table', { name: 'Tokyo hourly forecast' });
+    const rowHeaders = within(table).getAllByRole('rowheader');
+    expect(rowHeaders).toHaveLength(24);
+    expect(rowHeaders[0]).toHaveAttribute('scope', 'row');
   });
 
   it('has no axe violations for either range', async () => {

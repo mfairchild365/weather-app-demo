@@ -1,29 +1,40 @@
 import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { SparklineChart } from './SparklineChart';
 
 describe('SparklineChart', () => {
-  it('is aria-hidden — purely decorative, never the sole source of data (FR-006)', () => {
-    const { container } = render(<SparklineChart values={[10, 15, 12, 18]} />);
-    const svg = container.querySelector('svg');
-    expect(svg).toHaveAttribute('aria-hidden', 'true');
+  it('exposes an accessible name pointing to the table, never the sole source of data (FR-006)', () => {
+    render(
+      <SparklineChart
+        values={[10, 15, 12, 18]}
+        label="Chart of Tokyo hourly temperature, data in table below"
+      />,
+    );
+    const image = screen.getByRole('img', {
+      name: 'Chart of Tokyo hourly temperature, data in table below',
+    });
+    expect(image.tagName).toBe('svg');
   });
 
-  it('is not exposed to the accessibility tree', async () => {
+  it('has no axe violations', async () => {
     const { container } = render(
       <div>
-        <SparklineChart values={[10, 15, 12, 18]} />
+        <SparklineChart
+          values={[10, 15, 12, 18]}
+          label="Chart of Tokyo hourly temperature, data in table below"
+        />
         <p>Real data is in the table, not here.</p>
       </div>,
     );
-    // An aria-hidden subtree must produce zero axe violations and contribute no accessible node.
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
 
   it('renders nothing for an empty series', () => {
-    const { container } = render(<SparklineChart values={[]} />);
+    const { container } = render(
+      <SparklineChart values={[]} label="Chart of Tokyo hourly temperature, data in table below" />,
+    );
     expect(container.querySelector('svg')).toBeNull();
   });
 });
