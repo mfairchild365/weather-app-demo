@@ -1,1 +1,28 @@
 .DS_Store
+
+# dependencies
+node_modules/
+
+# build output
+dist/
+build/
+
+# env
+.env
+.env.local
+!.env.example
+
+# test artifacts
+coverage/
+playwright-report/
+test-results/
+e2e/.cache/
+
+# logs
+*.log
+npm-debug.log*
+
+# editors
+.vscode/*
+!.vscode/extensions.json
+.idea/

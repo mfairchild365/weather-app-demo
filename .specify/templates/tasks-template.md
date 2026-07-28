@@ -18,6 +18,19 @@ description: "Task list template for feature implementation"
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
 - Include exact file paths in descriptions
+- **Accessibility (constitution Principle I)**: any task that renders or changes UI MUST include a
+  `Done when:` line stating the accessible name(s)/role/state and keyboard/focus behavior it
+  produces, plus a `Test:` line naming the automated test file that proves it. Never write a bare
+  "add accessibility" task — the criterion lives on the UI task itself. Example:
+  ```markdown
+  - [ ] T0NN [US1] Add remove button to each saved-location row in src/components/LocationRow.tsx
+        Done when: accessible name is "Remove <location name>"; Enter/Space activates; confirm
+        dialog receives focus on open and returns it to the row's remove button on close.
+        Test: tests/a11y/saved-locations.spec.ts
+  ```
+- **Testing (constitution Principle II)**: any task that adds or changes behavior (UI or API) MUST
+  include a `Test:` line naming the unit or e2e test file that covers it. Tests are written in the
+  same task as the behavior, not deferred to a separate "add tests" task.
 
 ## Path Conventions
 

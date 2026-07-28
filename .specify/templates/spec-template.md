@@ -103,6 +103,58 @@
 - **[Entity 1]**: [What it represents, key attributes without implementation]
 - **[Entity 2]**: [What it represents, relationships to other entities]
 
+## Accessibility *(mandatory if this feature renders or changes UI; delete section otherwise)*
+
+<!--
+  ACTION REQUIRED: Per the project constitution (Principle I) and
+  .github/skills/building-accessible-ui/SKILL.md, this contract MUST be filled with concrete,
+  verifiable content before implementation starts — not left as a promise to write later.
+  Use the skill's stable keys as subheadings so downstream agents can locate each piece by name.
+  Delete this whole section only if the feature genuinely renders no UI (e.g. a backend-only or
+  migration-only feature) — do not leave it as placeholders.
+-->
+
+- **Affected personas**: [Which personas from the skill's constitution rule 2 this feature touches —
+  screen reader, keyboard-only, low-vision, cognitive, deaf/HoH, motor/voice/switch, situational]
+
+### components
+
+- [Each component used and why, per the implementation-priority ladder: existing codebase
+  component → component library → native semantics → native + minimal ARIA → custom widget last]
+
+### labels
+
+- [Accessible name for every interactive element this feature introduces or changes; call out
+  cases where the accessible name must include context beyond the visible label]
+
+### grouping
+
+- [Fieldset/legend or other grouping relationships; where group-level help/error text attaches]
+
+### keyboard
+
+- [Tab order, activation keys, arrow-key behavior inside composite widgets, Escape behavior, and
+  where focus moves on open and restores on close for every dynamic interaction]
+
+### dynamic_state
+
+- [ARIA state attributes introduced (e.g. `aria-expanded`, `aria-current`, `aria-invalid`) and the
+  event that updates each one]
+
+### status_messages
+
+- [Each live region: id, politeness (`polite`/`assertive`), message template, and trigger —
+  loading, empty, and error states covered explicitly]
+
+### testing
+
+- [Automated a11y test strategy per `references/testing.md` — tool, target, and test file(s)]
+
+### known_limitations
+
+- [Gaps not addressed in this iteration, each with the affected persona and, if known, the planned
+  fix. Leave empty only if there are truly none — do not claim the feature is "fully accessible".]
+
 ## Success Criteria *(mandatory)*
 
 <!--
