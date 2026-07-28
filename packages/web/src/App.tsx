@@ -47,6 +47,14 @@ export function App() {
           Open-Meteo
         </a>
         {copy.footerSuffix}
+        {copy.footerRepoPrefix}
+        <a
+          href="https://github.com/mfairchild365/weather-app-demo"
+          className="text-[var(--color-link)] underline"
+        >
+          GitHub
+        </a>
+        {copy.footerRepoSuffix}
       </footer>
     </div>
   );

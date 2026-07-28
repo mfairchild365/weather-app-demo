@@ -14,6 +14,8 @@ export const copy = {
   // Split around the embedded Open-Meteo link so App.tsx can render the anchor mid-sentence.
   footerPrefix: 'Data from ',
   footerSuffix: '. They do the hard part.',
+  footerRepoPrefix: ' Source on ',
+  footerRepoSuffix: '.',
 
   listHeading: 'Probably Weather',
   loading: 'Consulting the sky…',
