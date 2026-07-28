@@ -7,6 +7,8 @@ feature-by-feature under [GitHub spec-kit](https://github.com/github/spec-kit) w
 every UI spec before implementation starts. See [`.specify/memory/constitution.md`](.specify/memory/constitution.md)
 for the project's governing principles.
 
+**Live site:** [weather.mfairchild365.com](https://weather.mfairchild365.com/) (self-hosted).
+
 ## Architecture
 
 ```mermaid
