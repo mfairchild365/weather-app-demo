@@ -1,8 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { axe } from 'vitest-axe';
+import { resetAnnouncer } from '@weather-demo/ui';
 import { CityDetailPage } from './CityDetailPage';
 
 const CITY_DETAIL = {
@@ -80,6 +81,10 @@ function renderAt(path: string): void {
   );
 }
 
+afterEach(() => {
+  resetAnnouncer();
+});
+
 describe('CityDetailPage', () => {
   it('shows current conditions, freshness, and both forecast tabs (Acceptance Scenario US2.1)', async () => {
     stubFetchHappyPath();
@@ -143,8 +148,10 @@ describe('CityDetailPage', () => {
     }) as typeof fetch;
 
     renderAt('/cities/tokyo-jp');
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      "The sky is not returning our calls. Couldn't load forecast for Tokyo.",
+    await waitFor(() =>
+      expect(document.getElementById('city-detail-error')).toHaveTextContent(
+        "The sky is not returning our calls. Couldn't load forecast for Tokyo.",
+      ),
     );
 
     const user = userEvent.setup();

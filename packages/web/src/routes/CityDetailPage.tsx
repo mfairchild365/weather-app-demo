@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { StatusMessage, Tabs, Button } from '@weather-demo/ui';
+import { StatusMessage, Tabs, Button, announce } from '@weather-demo/ui';
 import { useCityDetail } from '../hooks/useCityDetail';
 import { useForecast } from '../hooks/useForecast';
 import { CurrentConditions } from '../components/CurrentConditions';
@@ -20,7 +20,15 @@ export function CityDetailPage() {
       detail.status === 'success' ? copy.cityDetailTitle(detail.data.name) : copy.tabTitle;
   }, [detail]);
 
-  if (detail.status === 'error' && detail.error.status === 404) {
+  const isNotFound = detail.status === 'error' && detail.error.status === 404;
+
+  // The "City not found" branch below renders before either StatusMessage, so it needs its own
+  // announcement — otherwise a screen reader user gets silence instead of the heading text.
+  useEffect(() => {
+    if (isNotFound) announce(copy.cityNotFoundHeading);
+  }, [isNotFound]);
+
+  if (isNotFound) {
     return (
       <div>
         <h1 className="mb-4 font-display text-2xl font-bold">{copy.cityNotFoundHeading}</h1>

@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { axe } from 'vitest-axe';
+import { resetAnnouncer } from '@weather-demo/ui';
 import { CityListPage } from './CityListPage';
 
 const CITIES = [
@@ -26,6 +27,7 @@ function renderPage(): void {
 
 afterEach(() => {
   vi.useRealTimers();
+  resetAnnouncer();
 });
 
 describe('CityListPage', () => {
@@ -66,7 +68,7 @@ describe('CityListPage', () => {
     await user.type(screen.getByRole('searchbox', { name: 'Search cities' }), 'zzz');
 
     await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent(
+      expect(document.getElementById('city-list-status')).toHaveTextContent(
         'Nothing matched "zzz". Bold search. Zero results.',
       ),
     );
@@ -81,7 +83,9 @@ describe('CityListPage', () => {
     await user.type(screen.getByRole('searchbox', { name: 'Search cities' }), 'xyzzy');
 
     await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent('Nothing here. You knew that.'),
+      expect(document.getElementById('city-list-status')).toHaveTextContent(
+        'Nothing here. You knew that.',
+      ),
     );
   });
 
@@ -94,7 +98,9 @@ describe('CityListPage', () => {
     await user.type(screen.getByRole('searchbox', { name: 'Search cities' }), 'Atlantis');
 
     await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent('Submerged. Forecast unavailable.'),
+      expect(document.getElementById('city-list-status')).toHaveTextContent(
+        'Submerged. Forecast unavailable.',
+      ),
     );
   });
 
@@ -107,8 +113,10 @@ describe('CityListPage', () => {
     }) as typeof fetch;
 
     renderPage();
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      "The sky is not returning our calls. Couldn't load cities.",
+    await waitFor(() =>
+      expect(document.getElementById('city-list-error')).toHaveTextContent(
+        "The sky is not returning our calls. Couldn't load cities.",
+      ),
     );
 
     const user = userEvent.setup();
@@ -135,7 +143,7 @@ describe('CityListPage', () => {
         <CityListPage />
       </MemoryRouter>,
     );
-    await screen.findByRole('alert');
+    await waitFor(() => expect(document.getElementById('city-list-error')).toHaveTextContent(/./));
     expect(await axe(errorRender.container)).toHaveNoViolations();
   });
 });
