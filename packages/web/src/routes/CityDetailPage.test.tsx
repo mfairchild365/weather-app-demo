@@ -93,7 +93,7 @@ describe('CityDetailPage', () => {
     expect(await screen.findByRole('heading', { name: 'Tokyo forecast' })).toBeInTheDocument();
     expect(screen.getByText('Partly cloudy')).toBeInTheDocument();
     expect(screen.getByText(/As of/)).toBeInTheDocument();
-    expect(screen.getByRole('table', { name: 'Tokyo hourly forecast' })).toBeInTheDocument();
+    expect(await screen.findByRole('table', { name: 'Tokyo hourly forecast' })).toBeInTheDocument();
   });
 
   it('switching to the Daily tab replaces the table without a full reload (Acceptance Scenario US2.3)', async () => {
