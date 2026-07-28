@@ -39,7 +39,9 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.{jsx,tsx}'],
+    // packages/{ui,web} are the only React packages, and their hook files aren't always .tsx
+    // (no JSX in them) — match .ts there too so react-hooks/exhaustive-deps is actually known.
+    files: ['**/*.{jsx,tsx}', 'packages/{ui,web}/src/**/*.ts'],
     plugins: { react, 'react-hooks': reactHooks, 'jsx-a11y': jsxA11y },
     languageOptions: {
       globals: { ...globals.browser },

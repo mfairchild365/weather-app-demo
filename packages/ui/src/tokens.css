@@ -1,0 +1,52 @@
+/**
+ * Design tokens (references/contrast-forced-colors.md). Every text/background and
+ * focus-indicator/background pair below is verified to meet its WCAG 2.2 AA threshold by
+ * tokens.test.ts (computed contrast ratio, not eyeballed) — the hex values there MUST be kept in
+ * sync with the values here.
+ *
+ * Body text / --color-bg            >= 4.5:1
+ * --color-muted-text / --color-bg   >= 4.5:1 (used for secondary text, e.g. freshness captions)
+ * --color-link / --color-bg         >= 4.5:1
+ * --color-danger / --color-bg       >= 4.5:1 (error text)
+ * --color-focus / --color-bg        >= 3:1   (focus indicators; non-text)
+ */
+
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #f8fafc;
+  --color-text: #1a1a1a;
+  --color-muted-text: #4b5563;
+  --color-link: #1d4ed8;
+  --color-border: #d1d5db;
+  --color-focus: #2563eb;
+  --color-danger: #b91c1c;
+  --color-danger-bg: #fef2f2;
+  --color-success: #15803d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1115;
+    --color-surface: #1a1d23;
+    --color-text: #f3f4f6;
+    --color-muted-text: #9ca3af;
+    --color-link: #93c5fd;
+    --color-border: #374151;
+    --color-focus: #60a5fa;
+    --color-danger: #f87171;
+    --color-danger-bg: #2a1414;
+    --color-success: #4ade80;
+  }
+}
+
+/* Never override the OS's own forced-colors palette — only ensure non-text boundaries that would
+   otherwise disappear (decorative borders, box-shadow focus rings) still render, per
+   references/contrast-forced-colors.md. */
+@media (forced-colors: active) {
+  * {
+    forced-color-adjust: auto;
+  }
+}
+
+/* Tailwind ships its own .sr-only / .focus:not-sr-only utilities (used by SkipLink.tsx and
+   StatusMessage.tsx); no custom visually-hidden rule needed here. */

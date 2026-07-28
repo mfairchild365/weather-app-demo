@@ -10,7 +10,7 @@ Stand up the npm workspaces monorepo, a normalized Postgres schema managed with 
 checked-in migrations, three least-privilege database roles, a Docker Compose stack that runs
 migrations before any dependent service, and a base GitHub Actions CI pipeline (lint/typecheck/
 unit/migration-smoke). No application behavior (API routes, ingestion, UI) ships in this feature —
-those are `002-weather-ingestion` and `003-forecast-browser`.
+those are `002-weather-ingestion-worker` and `003-accessible-forecast-browser`.
 
 ## Technical Context
 
@@ -100,10 +100,10 @@ packages/
 │       ├── client.ts             # pg pool + drizzle instance, env-driven connection string
 │       ├── seed.ts               # idempotent starter-city seed
 │       └── migrate.ts            # applies pending migrations programmatically (used by Docker + CI)
-├── api/       (stub package.json + tsconfig only — real content in 002-weather-ingestion)
-├── ingest/    (stub package.json + tsconfig only — real content in 002-weather-ingestion)
-├── ui/        (stub package.json + tsconfig only — real content in 003-forecast-browser)
-└── web/       (stub package.json + tsconfig only — real content in 003-forecast-browser)
+├── api/       (stub package.json + tsconfig only — real content in 002-weather-ingestion-worker)
+├── ingest/    (stub package.json + tsconfig only — real content in 002-weather-ingestion-worker)
+├── ui/        (stub package.json + tsconfig only — real content in 003-accessible-forecast-browser)
+└── web/       (stub package.json + tsconfig only — real content in 003-accessible-forecast-browser)
 ```
 
 **Structure Decision**: npm workspaces monorepo (Option 2 "web application" shape adapted to five

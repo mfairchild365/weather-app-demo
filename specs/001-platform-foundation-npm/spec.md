@@ -179,7 +179,7 @@ configuration.
   is evaluated in, including CI runners.
 - Postgres 16 is an acceptable target version; no requirement was given to support older versions.
 - This feature ships no application behavior (API routes, ingestion, UI) — those are separate
-  specs (`002-weather-ingestion`, `003-forecast-browser`) that build on this foundation.
+  specs (`002-weather-ingestion-worker`, `003-accessible-forecast-browser`) that build on this foundation.
 - "10+ cities across 3+ regions" is a reasonable stand-in for "starter dataset"; the exact city list
   is an implementation decision, not a product requirement.
 - No secrets are required to run the base CI pipeline; publishing images to a registry (covered

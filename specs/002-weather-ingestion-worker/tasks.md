@@ -165,7 +165,7 @@ returns real seeded/ingested data end to end through Docker.
 - Every implementation task carries a `Test:` or `Done when:` line per the tasks template's
   Testing rule (constitution Principle II).
 
-## Addendum (spec FR-014, added while planning 003-forecast-browser)
+## Addendum (spec FR-014, added while planning 003-accessible-forecast-browser)
 
 - [x] T028 Join `weather_codes` in `getLatestObservation`, `getForecastHourly`, `getForecastDaily`
       (`packages/db/src/repositories/{observations,forecasts}.ts`) to return `weatherLabel` /

@@ -55,8 +55,8 @@ services:
       DATABASE_URL_INGEST: postgresql://weather_ingest:${WEATHER_INGEST_PASSWORD}@postgres:5432/${POSTGRES_DB:-weather_demo}
 
   # Public, read-only JSON API using the weather_api role only (SELECT everywhere, no write grant
-  # exists for it at all — see packages/db/roles.sql). This is the one service meant to be
-  # reachable from outside the compose network.
+  # exists for it at all — see packages/db/roles.sql). Published directly too (not just via the
+  # web service's proxy) so `curl localhost:3000/api/...` and /api/docs work standalone.
   api:
     build:
       context: .
@@ -70,6 +70,21 @@ services:
       PORT: '3000'
     ports:
       - '${API_HOST_PORT:-3000}:3000'
+
+  # The public-facing surface: static SPA served by nginx, which also reverse-proxies /api/* to
+  # the api service (docker/nginx.conf) so the browser only ever calls same-origin relative paths.
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+    ports:
+      - '${WEB_HOST_PORT:-8080}:8080'
 
 volumes:
   postgres-data:

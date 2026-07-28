@@ -14,9 +14,11 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          // Non-DOM tests everywhere, including packages/{ui,web}'s own non-component logic
+          // (e.g. tokens.test.ts, api-client.test.ts) — only .test.tsx files need jsdom.
           name: 'node',
           environment: 'node',
-          include: ['packages/{db,api,ingest}/src/**/*.test.ts'],
+          include: ['packages/*/src/**/*.test.ts'],
         },
       },
       {
@@ -27,6 +29,7 @@ export default defineConfig({
           name: 'dom',
           environment: 'jsdom',
           include: ['packages/{ui,web}/src/**/*.test.tsx'],
+          setupFiles: ['./vitest.setup.ts'],
         },
       },
     ],

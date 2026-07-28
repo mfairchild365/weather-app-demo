@@ -148,7 +148,7 @@ transparently read-only and non-interactive — freshness is the substitute for 
   repository functions in `packages/db`; neither process composes SQL from external input.
 - **FR-014**: Every observation and forecast row the API returns MUST include a human-readable
   weather label (and icon key) resolved via a join against `weather_codes` in the repository layer
-  — added once `003-forecast-browser` needed a real label to display; the consuming UI MUST NOT
+  — added once `003-accessible-forecast-browser` needed a real label to display; the consuming UI MUST NOT
   maintain its own copy of the WMO code table (constitution Principle IV: no denormalized
   duplication of lookup data).
 
@@ -161,7 +161,7 @@ forecast_daily, weather_codes, measurement_types/units/provider_units).
 ## Accessibility
 
 Not applicable — this feature exposes no user interface (a worker process and a JSON HTTP API).
-The forecast browser UI that consumes this API is `003-forecast-browser`, whose spec carries the
+The forecast browser UI that consumes this API is `003-accessible-forecast-browser`, whose spec carries the
 full accessibility contract per constitution Principle I.
 
 ## Success Criteria *(mandatory)*
