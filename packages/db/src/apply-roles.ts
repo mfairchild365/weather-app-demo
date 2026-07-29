@@ -1,5 +1,5 @@
 import type { Pool } from 'pg';
-import { createDatabase, requireEnv } from './client.js';
+import { createAdminPool, requireEnv } from './client.js';
 
 const DUPLICATE_OBJECT = '42710';
 
@@ -70,7 +70,7 @@ export async function applyRoles(pool: Pool, passwords: RolePasswords): Promise<
 }
 
 async function main(): Promise<void> {
-  const { pool } = createDatabase(requireEnv('DATABASE_URL_OWNER'));
+  const pool = createAdminPool(requireEnv('DATABASE_URL_OWNER'));
   try {
     await applyRoles(pool, {
       ingest: requireEnv('WEATHER_INGEST_PASSWORD'),

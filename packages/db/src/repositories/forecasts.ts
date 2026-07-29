@@ -1,10 +1,34 @@
-import { eq, asc } from 'drizzle-orm';
 import type { Database } from '../client';
-import { forecastHourly, forecastDaily } from '../schema/forecasts';
-import { weatherCodes } from '../schema/lookups';
+import type { Prisma } from '../generated/prisma/client';
+import { decimalToString } from '../decimal';
 
-export type ForecastHourlyInput = typeof forecastHourly.$inferInsert;
-export type ForecastDailyInput = typeof forecastDaily.$inferInsert;
+export interface ForecastHourlyInput {
+  cityId: number;
+  ingestRunId: number;
+  validAt: Date;
+  temperature: string;
+  windSpeed: string | null;
+  windDirection: string | null;
+  humidity: string | null;
+  precipitation: string | null;
+  precipitationProbability: string | null;
+  weatherCode: number;
+  isDay: boolean;
+}
+
+export interface ForecastDailyInput {
+  cityId: number;
+  ingestRunId: number;
+  validDate: string;
+  temperatureMin: string;
+  temperatureMax: string;
+  windSpeedMax: string | null;
+  precipitationSum: string | null;
+  precipitationProbabilityMax: string | null;
+  weatherCode: number;
+  sunrise: Date | null;
+  sunset: Date | null;
+}
 
 export interface ForecastHourlyRow {
   cityId: number;
@@ -38,6 +62,91 @@ export interface ForecastDailyRow {
   sunset: Date | null;
 }
 
+interface ForecastHourlyWithWeatherCodeRow {
+  cityId: number;
+  ingestRunId: number;
+  validAt: Date;
+  temperature: Prisma.Decimal;
+  windSpeed: Prisma.Decimal | null;
+  windDirection: Prisma.Decimal | null;
+  humidity: Prisma.Decimal | null;
+  precipitation: Prisma.Decimal | null;
+  precipitationProbability: Prisma.Decimal | null;
+  weatherCode: number;
+  isDay: boolean;
+  weatherCodeRef: { label: string; iconKey: string };
+}
+
+interface ForecastDailyWithWeatherCodeRow {
+  cityId: number;
+  ingestRunId: number;
+  validDate: Date;
+  temperatureMin: Prisma.Decimal;
+  temperatureMax: Prisma.Decimal;
+  windSpeedMax: Prisma.Decimal | null;
+  precipitationSum: Prisma.Decimal | null;
+  precipitationProbabilityMax: Prisma.Decimal | null;
+  weatherCode: number;
+  sunrise: Date | null;
+  sunset: Date | null;
+  weatherCodeRef: { label: string; iconKey: string };
+}
+
+const weatherCodeSelect = { select: { label: true, iconKey: true } } as const;
+
+/** Postgres `date` columns come back from Prisma as UTC-midnight `Date` instances; format back
+ * to the plain `YYYY-MM-DD` string every caller of this repository already expects. */
+function toDateOnlyString(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+/** The inverse of `toDateOnlyString` — a plain `YYYY-MM-DD` string is accepted in `create`/
+ * `update` input, but the compound-unique `where` filter Prisma generates for `@@unique` requires
+ * a full `Date`, not a bare date string (it rejects the latter as "premature end of input.
+ * Expected ISO-8601 DateTime"). Parsed as UTC midnight to match how Postgres's `date` type and
+ * Prisma read it back. */
+function toDateOnly(validDate: string): Date {
+  return new Date(`${validDate}T00:00:00.000Z`);
+}
+
+// Numeric precision/scale per prisma/schema.prisma's ForecastHourly model.
+function toForecastHourlyRow(row: ForecastHourlyWithWeatherCodeRow): ForecastHourlyRow {
+  return {
+    cityId: row.cityId,
+    ingestRunId: row.ingestRunId,
+    validAt: row.validAt,
+    temperature: decimalToString(row.temperature, 2),
+    windSpeed: decimalToString(row.windSpeed, 2),
+    windDirection: decimalToString(row.windDirection, 1),
+    humidity: decimalToString(row.humidity, 2),
+    precipitation: decimalToString(row.precipitation, 2),
+    precipitationProbability: decimalToString(row.precipitationProbability, 2),
+    weatherCode: row.weatherCode,
+    weatherLabel: row.weatherCodeRef.label,
+    weatherIconKey: row.weatherCodeRef.iconKey,
+    isDay: row.isDay,
+  };
+}
+
+// Numeric precision/scale per prisma/schema.prisma's ForecastDaily model.
+function toForecastDailyRow(row: ForecastDailyWithWeatherCodeRow): ForecastDailyRow {
+  return {
+    cityId: row.cityId,
+    ingestRunId: row.ingestRunId,
+    validDate: toDateOnlyString(row.validDate),
+    temperatureMin: decimalToString(row.temperatureMin, 2),
+    temperatureMax: decimalToString(row.temperatureMax, 2),
+    windSpeedMax: decimalToString(row.windSpeedMax, 2),
+    precipitationSum: decimalToString(row.precipitationSum, 2),
+    precipitationProbabilityMax: decimalToString(row.precipitationProbabilityMax, 2),
+    weatherCode: row.weatherCode,
+    weatherLabel: row.weatherCodeRef.label,
+    weatherIconKey: row.weatherCodeRef.iconKey,
+    sunrise: row.sunrise,
+    sunset: row.sunset,
+  };
+}
+
 /**
  * Hourly forecast rows for a city, ordered by valid time ascending. Joined with weather_codes so
  * callers get a human-readable label — never duplicated as a hardcoded lookup on the client.
@@ -46,80 +155,55 @@ export async function getForecastHourly(
   db: Database,
   cityId: number,
 ): Promise<ForecastHourlyRow[]> {
-  return db
-    .select({
-      cityId: forecastHourly.cityId,
-      ingestRunId: forecastHourly.ingestRunId,
-      validAt: forecastHourly.validAt,
-      temperature: forecastHourly.temperature,
-      windSpeed: forecastHourly.windSpeed,
-      windDirection: forecastHourly.windDirection,
-      humidity: forecastHourly.humidity,
-      precipitation: forecastHourly.precipitation,
-      precipitationProbability: forecastHourly.precipitationProbability,
-      weatherCode: forecastHourly.weatherCode,
-      weatherLabel: weatherCodes.label,
-      weatherIconKey: weatherCodes.iconKey,
-      isDay: forecastHourly.isDay,
-    })
-    .from(forecastHourly)
-    .innerJoin(weatherCodes, eq(forecastHourly.weatherCode, weatherCodes.code))
-    .where(eq(forecastHourly.cityId, cityId))
-    .orderBy(asc(forecastHourly.validAt));
+  const rows = await db.forecastHourly.findMany({
+    where: { cityId },
+    orderBy: { validAt: 'asc' },
+    include: { weatherCodeRef: weatherCodeSelect },
+  });
+  return rows.map(toForecastHourlyRow);
 }
 
 /** Daily forecast rows for a city, ordered by valid date ascending. Joined as above. */
 export async function getForecastDaily(db: Database, cityId: number): Promise<ForecastDailyRow[]> {
-  return db
-    .select({
-      cityId: forecastDaily.cityId,
-      ingestRunId: forecastDaily.ingestRunId,
-      validDate: forecastDaily.validDate,
-      temperatureMin: forecastDaily.temperatureMin,
-      temperatureMax: forecastDaily.temperatureMax,
-      windSpeedMax: forecastDaily.windSpeedMax,
-      precipitationSum: forecastDaily.precipitationSum,
-      precipitationProbabilityMax: forecastDaily.precipitationProbabilityMax,
-      weatherCode: forecastDaily.weatherCode,
-      weatherLabel: weatherCodes.label,
-      weatherIconKey: weatherCodes.iconKey,
-      sunrise: forecastDaily.sunrise,
-      sunset: forecastDaily.sunset,
-    })
-    .from(forecastDaily)
-    .innerJoin(weatherCodes, eq(forecastDaily.weatherCode, weatherCodes.code))
-    .where(eq(forecastDaily.cityId, cityId))
-    .orderBy(asc(forecastDaily.validDate));
+  const rows = await db.forecastDaily.findMany({
+    where: { cityId },
+    orderBy: { validDate: 'asc' },
+    include: { weatherCodeRef: weatherCodeSelect },
+  });
+  return rows.map(toForecastDailyRow);
 }
 
 /**
  * Bulk insert-or-update hourly forecast rows, keyed on the (city, valid_at) unique constraint —
  * re-ingesting the same hour updates it rather than duplicating it. A no-op on an empty array.
+ * Runs as one transaction rather than one round trip per row (a full ingest cycle upserts dozens
+ * of hourly rows per city).
  */
 export async function upsertForecastHourly(
   db: Database,
   rows: ForecastHourlyInput[],
 ): Promise<void> {
   if (rows.length === 0) return;
-  for (const row of rows) {
-    await db
-      .insert(forecastHourly)
-      .values(row)
-      .onConflictDoUpdate({
-        target: [forecastHourly.cityId, forecastHourly.validAt],
-        set: {
-          ingestRunId: row.ingestRunId,
-          temperature: row.temperature,
-          windSpeed: row.windSpeed,
-          windDirection: row.windDirection,
-          humidity: row.humidity,
-          precipitation: row.precipitation,
-          precipitationProbability: row.precipitationProbability,
-          weatherCode: row.weatherCode,
-          isDay: row.isDay,
-        },
+  await db.$transaction(
+    rows.map((row) => {
+      const shared = {
+        ingestRunId: row.ingestRunId,
+        temperature: row.temperature,
+        windSpeed: row.windSpeed,
+        windDirection: row.windDirection,
+        humidity: row.humidity,
+        precipitation: row.precipitation,
+        precipitationProbability: row.precipitationProbability,
+        weatherCode: row.weatherCode,
+        isDay: row.isDay,
+      };
+      return db.forecastHourly.upsert({
+        where: { cityId_validAt: { cityId: row.cityId, validAt: row.validAt } },
+        create: { cityId: row.cityId, validAt: row.validAt, ...shared },
+        update: shared,
       });
-  }
+    }),
+  );
 }
 
 /**
@@ -128,23 +212,25 @@ export async function upsertForecastHourly(
  */
 export async function upsertForecastDaily(db: Database, rows: ForecastDailyInput[]): Promise<void> {
   if (rows.length === 0) return;
-  for (const row of rows) {
-    await db
-      .insert(forecastDaily)
-      .values(row)
-      .onConflictDoUpdate({
-        target: [forecastDaily.cityId, forecastDaily.validDate],
-        set: {
-          ingestRunId: row.ingestRunId,
-          temperatureMin: row.temperatureMin,
-          temperatureMax: row.temperatureMax,
-          windSpeedMax: row.windSpeedMax,
-          precipitationSum: row.precipitationSum,
-          precipitationProbabilityMax: row.precipitationProbabilityMax,
-          weatherCode: row.weatherCode,
-          sunrise: row.sunrise,
-          sunset: row.sunset,
-        },
+  await db.$transaction(
+    rows.map((row) => {
+      const shared = {
+        ingestRunId: row.ingestRunId,
+        temperatureMin: row.temperatureMin,
+        temperatureMax: row.temperatureMax,
+        windSpeedMax: row.windSpeedMax,
+        precipitationSum: row.precipitationSum,
+        precipitationProbabilityMax: row.precipitationProbabilityMax,
+        weatherCode: row.weatherCode,
+        sunrise: row.sunrise,
+        sunset: row.sunset,
+      };
+      const validDate = toDateOnly(row.validDate);
+      return db.forecastDaily.upsert({
+        where: { cityId_validDate: { cityId: row.cityId, validDate } },
+        create: { cityId: row.cityId, validDate, ...shared },
+        update: shared,
       });
-  }
+    }),
+  );
 }

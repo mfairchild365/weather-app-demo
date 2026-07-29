@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { eq } from 'drizzle-orm';
 import { createDatabase, type Database } from '../client';
 import { runMigrations } from '../migrate';
 import { seed } from '../seed';
 import { testDatabaseUrl } from '../test-utils';
-import { providers } from '../schema/providers';
+import { getProviderByKey } from './providers';
 import {
   getForecastHourly,
   getForecastDaily,
@@ -15,27 +14,24 @@ import { createIngestRun } from './ingest-runs';
 import { insertTestCity } from './test-helpers';
 
 async function seededProviderId(db: Database): Promise<number> {
-  const [row] = await db
-    .select({ id: providers.id })
-    .from(providers)
-    .where(eq(providers.key, 'open-meteo'));
-  if (!row) throw new Error('Seeded provider not found: open-meteo');
-  return row.id;
+  const provider = await getProviderByKey(db, 'open-meteo');
+  if (!provider) throw new Error('Seeded provider not found: open-meteo');
+  return provider.id;
 }
 
 describe('forecasts repository', () => {
   beforeAll(async () => {
     await runMigrations(testDatabaseUrl());
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       await seed(db);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('upserts hourly rows on (city, valid_at), ordered by valid time ascending', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const cityId = await insertTestCity(db, 'db-test-forecasts-hourly', 'Hourly Test City');
       const providerId = await seededProviderId(db);
@@ -95,12 +91,12 @@ describe('forecasts repository', () => {
       expect(rows[0]?.temperature).toBe('20.00');
       expect(rows[1]?.validAt).toEqual(hourTwo);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('upserts daily rows on (city, valid_date)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const cityId = await insertTestCity(db, 'db-test-forecasts-daily', 'Daily Test City');
       const providerId = await seededProviderId(db);
@@ -126,17 +122,17 @@ describe('forecasts repository', () => {
       expect(rows).toHaveLength(1);
       expect(rows[0]?.temperatureMax).toBe('18.00');
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('upserting an empty array is a no-op', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       await expect(upsertForecastHourly(db, [])).resolves.not.toThrow();
       await expect(upsertForecastDaily(db, [])).resolves.not.toThrow();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });

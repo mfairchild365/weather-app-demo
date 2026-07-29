@@ -22,6 +22,7 @@ export default tseslint.config(
       '**/test-results/**',
       '**/.specify/**',
       '**/migrations/**',
+      'packages/db/src/generated/**',
     ],
   },
   js.configs.recommended,

@@ -10,7 +10,7 @@ describe('GET /api/health', () => {
   });
 
   it('returns 200 with status ok', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: '/api/health' });
@@ -20,7 +20,7 @@ describe('GET /api/health', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });

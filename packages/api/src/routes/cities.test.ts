@@ -76,19 +76,19 @@ async function seedOneCycleFor(db: Database, cityId: number): Promise<void> {
 describe('cities routes', () => {
   beforeAll(async () => {
     await runMigrations(testDatabaseUrl());
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       await seed(db);
       await insertTestCity(db, NO_DATA_SLUG, 'No Data City');
       const withDataId = await insertTestCity(db, WITH_DATA_SLUG, 'With Data City');
       await seedOneCycleFor(db, withDataId);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('GET /api/cities returns every seeded city (Acceptance Scenario US2.1)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: '/api/cities' });
@@ -103,12 +103,12 @@ describe('cities routes', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('GET /api/cities/:slug returns city detail with its latest observation (US2.2)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: `/api/cities/${WITH_DATA_SLUG}` });
@@ -124,12 +124,12 @@ describe('cities routes', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('GET /api/cities/:slug returns null observation for a city with no data yet (edge case)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: `/api/cities/${NO_DATA_SLUG}` });
@@ -139,12 +139,12 @@ describe('cities routes', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('GET /api/cities/:slug returns 404 with a JSON error body for an unknown slug (US2.4)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: '/api/cities/nonexistent' });
@@ -154,12 +154,12 @@ describe('cities routes', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('GET /api/cities/:slug/forecast?range=hourly returns hourly rows (US2.3)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({
@@ -175,12 +175,12 @@ describe('cities routes', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('GET /api/cities/:slug/forecast?range=daily returns daily rows', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({
@@ -195,12 +195,12 @@ describe('cities routes', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('GET /api/cities/:slug/forecast rejects an invalid range with 400 (FR-010, edge case)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({
@@ -213,7 +213,7 @@ describe('cities routes', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });

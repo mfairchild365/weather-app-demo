@@ -1,0 +1,227 @@
+// Prisma schema for @weather-demo/db. Physical table/column/constraint/index names are pinned
+// with @map / @@map to exactly match the schema this project shipped with (see
+// packages/db/prisma/migrations/0_init) — packages/db/roles.sql and src/apply-roles.ts grant
+// privileges by these names directly, and must keep working unmodified.
+//
+// CLI commands (`prisma generate`, `prisma migrate ...`) are configured by the repo-root
+// prisma.config.ts, not by this file's datasource block alone.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  runtime             = "nodejs"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+// No `url` here — Prisma 7 resolves the connection exclusively through prisma.config.ts (for the
+// CLI) and through the driver adapter passed to `new PrismaClient()` at runtime (see
+// packages/db/src/client.ts).
+datasource db {
+  provider = "postgresql"
+}
+
+/// A country or administrative area a city belongs to.
+model Region {
+  id        Int      @id @default(autoincrement())
+  name      String
+  code      String   @unique(map: "regions_code_unique")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  cities City[]
+
+  @@map("regions")
+}
+
+/// A named location, the unit of navigation for every forecast-browsing feature.
+model City {
+  id        Int      @id @default(autoincrement())
+  regionId  Int      @map("region_id")
+  name      String
+  slug      String   @unique(map: "cities_slug_unique")
+  latitude  Decimal  @db.Decimal(8, 5)
+  longitude Decimal  @db.Decimal(8, 5)
+  timezone  String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  region         Region           @relation(fields: [regionId], references: [id], map: "cities_region_id_regions_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  observations   Observation[]
+  forecastDaily  ForecastDaily[]
+  forecastHourly ForecastHourly[]
+
+  @@map("cities")
+}
+
+/// A weather data source. Referenced by ingest runs so no source string is duplicated on rows.
+model Provider {
+  id             Int      @id @default(autoincrement())
+  key            String   @unique(map: "providers_key_unique")
+  name           String
+  attributionUrl String   @map("attribution_url")
+  license        String
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  ingestRuns    IngestRun[]
+  providerUnits ProviderUnit[]
+
+  @@map("providers")
+}
+
+/// The kinds of numeric measurement this system records (temperature, wind speed, ...). Numeric
+/// columns on observations/forecasts are named without a unit suffix (e.g. `temperature`, not
+/// `temperature_celsius`); the unit each provider expresses that measurement in is recorded once,
+/// in ProviderUnit, rather than duplicated per row.
+model MeasurementType {
+  id          Int    @id @default(autoincrement())
+  key         String @unique(map: "measurement_types_key_unique")
+  displayName String @map("display_name")
+
+  units         Unit[]
+  providerUnits ProviderUnit[]
+
+  @@map("measurement_types")
+}
+
+/// A concrete unit (Celsius, km/h, mm, ...) that belongs to exactly one measurement type.
+model Unit {
+  id                Int    @id @default(autoincrement())
+  measurementTypeId Int    @map("measurement_type_id")
+  key               String @unique(map: "units_key_unique")
+  symbol            String
+  displayName       String @map("display_name")
+
+  measurementType MeasurementType @relation(fields: [measurementTypeId], references: [id], map: "units_measurement_type_id_measurement_types_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  providerUnits   ProviderUnit[]
+
+  @@map("units")
+}
+
+/// Which unit a given provider uses for a given measurement type. The ingest pipeline always
+/// requests the same units from a provider, so this is recorded once per (provider, measurement)
+/// pair rather than on every observation/forecast row.
+model ProviderUnit {
+  providerId        Int @map("provider_id")
+  measurementTypeId Int @map("measurement_type_id")
+  unitId            Int @map("unit_id")
+
+  provider        Provider        @relation(fields: [providerId], references: [id], map: "provider_units_provider_id_providers_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  measurementType MeasurementType @relation(fields: [measurementTypeId], references: [id], map: "provider_units_measurement_type_id_measurement_types_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  unit            Unit            @relation(fields: [unitId], references: [id], map: "provider_units_unit_id_units_id_fk", onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([providerId, measurementTypeId], map: "provider_units_provider_id_measurement_type_id_pk")
+  @@map("provider_units")
+}
+
+/// WMO weather interpretation codes (the fixed, documented code set used by Open-Meteo and most
+/// other providers). Referenced by FK from observations/forecasts — never denormalized to a text
+/// column on those rows.
+model WeatherCode {
+  code    Int    @id
+  label   String
+  iconKey String @map("icon_key")
+
+  observations   Observation[]
+  forecastDaily  ForecastDaily[]
+  forecastHourly ForecastHourly[]
+
+  @@map("weather_codes")
+}
+
+enum IngestRunStatus {
+  running
+  success
+  failed
+
+  @@map("ingest_run_status")
+}
+
+/// One execution of the scheduled ingestion job. Powers a "data last updated" indicator and lets
+/// every observation/forecast row trace back to the run that produced it.
+model IngestRun {
+  id         Int             @id @default(autoincrement())
+  providerId Int             @map("provider_id")
+  startedAt  DateTime        @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt DateTime?       @map("finished_at") @db.Timestamptz(6)
+  status     IngestRunStatus @default(running)
+  error      String?
+
+  provider       Provider         @relation(fields: [providerId], references: [id], map: "ingest_runs_provider_id_providers_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  observations   Observation[]
+  forecastDaily  ForecastDaily[]
+  forecastHourly ForecastHourly[]
+
+  @@map("ingest_runs")
+}
+
+/// A single current-conditions reading for a city at a point in time. Units for every numeric
+/// column here are resolved via ProviderUnit, keyed by the ingest run's provider — not stored
+/// per row. Unique on (city, observed_at) so a re-ingested reading for the same instant upserts.
+model Observation {
+  id            Int      @id @default(autoincrement())
+  cityId        Int      @map("city_id")
+  ingestRunId   Int      @map("ingest_run_id")
+  observedAt    DateTime @map("observed_at") @db.Timestamptz(6)
+  temperature   Decimal  @db.Decimal(5, 2)
+  windSpeed     Decimal  @map("wind_speed") @db.Decimal(5, 2)
+  windDirection Decimal? @map("wind_direction") @db.Decimal(5, 1)
+  humidity      Decimal? @db.Decimal(5, 2)
+  pressure      Decimal? @db.Decimal(6, 2)
+  precipitation Decimal? @db.Decimal(6, 2)
+  weatherCode   Int      @map("weather_code")
+  isDay         Boolean  @map("is_day")
+
+  city           City        @relation(fields: [cityId], references: [id], map: "observations_city_id_cities_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  ingestRun      IngestRun   @relation(fields: [ingestRunId], references: [id], map: "observations_ingest_run_id_ingest_runs_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  weatherCodeRef WeatherCode @relation(fields: [weatherCode], references: [code], map: "observations_weather_code_weather_codes_code_fk", onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([cityId, observedAt], map: "observations_city_observed_at_idx")
+  @@map("observations")
+}
+
+/// A daily forecast row for a city on a specific valid date. Unique on (city, valid_date) so
+/// re-ingestion upserts the same day rather than duplicating it.
+model ForecastDaily {
+  id                          Int       @id @default(autoincrement())
+  cityId                      Int       @map("city_id")
+  ingestRunId                 Int       @map("ingest_run_id")
+  validDate                   DateTime  @map("valid_date") @db.Date
+  temperatureMin              Decimal   @map("temperature_min") @db.Decimal(5, 2)
+  temperatureMax              Decimal   @map("temperature_max") @db.Decimal(5, 2)
+  windSpeedMax                Decimal?  @map("wind_speed_max") @db.Decimal(5, 2)
+  precipitationSum            Decimal?  @map("precipitation_sum") @db.Decimal(6, 2)
+  precipitationProbabilityMax Decimal?  @map("precipitation_probability_max") @db.Decimal(5, 2)
+  weatherCode                 Int       @map("weather_code")
+  sunrise                     DateTime? @db.Timestamptz(6)
+  sunset                      DateTime? @db.Timestamptz(6)
+
+  city           City        @relation(fields: [cityId], references: [id], map: "forecast_daily_city_id_cities_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  ingestRun      IngestRun   @relation(fields: [ingestRunId], references: [id], map: "forecast_daily_ingest_run_id_ingest_runs_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  weatherCodeRef WeatherCode @relation(fields: [weatherCode], references: [code], map: "forecast_daily_weather_code_weather_codes_code_fk", onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([cityId, validDate], map: "forecast_daily_city_valid_date_idx")
+  @@map("forecast_daily")
+}
+
+/// An hourly forecast row for a city at a specific valid hour. Unique on (city, valid_at) so
+/// re-ingestion upserts the same hour rather than duplicating it.
+model ForecastHourly {
+  id                       Int      @id @default(autoincrement())
+  cityId                   Int      @map("city_id")
+  ingestRunId              Int      @map("ingest_run_id")
+  validAt                  DateTime @map("valid_at") @db.Timestamptz(6)
+  temperature              Decimal  @db.Decimal(5, 2)
+  windSpeed                Decimal? @map("wind_speed") @db.Decimal(5, 2)
+  windDirection            Decimal? @map("wind_direction") @db.Decimal(5, 1)
+  humidity                 Decimal? @db.Decimal(5, 2)
+  precipitation            Decimal? @db.Decimal(6, 2)
+  precipitationProbability Decimal? @map("precipitation_probability") @db.Decimal(5, 2)
+  weatherCode              Int      @map("weather_code")
+  isDay                    Boolean  @map("is_day")
+
+  city           City        @relation(fields: [cityId], references: [id], map: "forecast_hourly_city_id_cities_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  ingestRun      IngestRun   @relation(fields: [ingestRunId], references: [id], map: "forecast_hourly_ingest_run_id_ingest_runs_id_fk", onDelete: NoAction, onUpdate: NoAction)
+  weatherCodeRef WeatherCode @relation(fields: [weatherCode], references: [code], map: "forecast_hourly_weather_code_weather_codes_code_fk", onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([cityId, validAt], map: "forecast_hourly_city_valid_at_idx")
+  @@map("forecast_hourly")
+}

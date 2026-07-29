@@ -2,7 +2,6 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { createDatabase } from './client.js';
 import { seed } from './seed.js';
 import { runMigrations } from './migrate.js';
-import { cities } from './schema/cities.js';
 import { testDatabaseUrl } from './test-utils.js';
 
 describe('seed', () => {
@@ -11,18 +10,18 @@ describe('seed', () => {
   });
 
   it('is idempotent: running twice yields the same row count (spec FR-008)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       await seed(db);
-      const first = await db.select({ id: cities.id }).from(cities);
+      const first = await db.city.count();
 
       await seed(db);
-      const second = await db.select({ id: cities.id }).from(cities);
+      const second = await db.city.count();
 
-      expect(second.length).toBe(first.length);
-      expect(first.length).toBeGreaterThanOrEqual(10);
+      expect(second).toBe(first);
+      expect(first).toBeGreaterThanOrEqual(10);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });

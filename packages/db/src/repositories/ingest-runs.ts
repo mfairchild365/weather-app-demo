@@ -1,19 +1,22 @@
-import { eq, desc } from 'drizzle-orm';
 import type { Database } from '../client';
-import { ingestRuns } from '../schema/ingest-runs';
 
-export type IngestRunRow = typeof ingestRuns.$inferSelect;
+export type IngestRunStatus = 'running' | 'success' | 'failed';
+
+export interface IngestRunRow {
+  id: number;
+  providerId: number;
+  startedAt: Date;
+  finishedAt: Date | null;
+  status: IngestRunStatus;
+  error: string | null;
+}
 
 /** Starts a new ingest run row (status `running`) and returns its id. */
 export async function createIngestRun(db: Database, providerId: number): Promise<number> {
-  const rows = await db
-    .insert(ingestRuns)
-    .values({ providerId, status: 'running' })
-    .returning({ id: ingestRuns.id });
-  const row = rows[0];
-  if (!row) {
-    throw new Error('Failed to create ingest run');
-  }
+  const row = await db.ingestRun.create({
+    data: { providerId, status: 'running' },
+    select: { id: true },
+  });
   return row.id;
 }
 
@@ -28,10 +31,10 @@ export async function completeIngestRun(
   id: number,
   result: CompleteIngestRunResult,
 ): Promise<void> {
-  await db
-    .update(ingestRuns)
-    .set({ status: result.status, error: result.error ?? null, finishedAt: new Date() })
-    .where(eq(ingestRuns.id, id));
+  await db.ingestRun.update({
+    where: { id },
+    data: { status: result.status, error: result.error ?? null, finishedAt: new Date() },
+  });
 }
 
 /** A single ingest run by id, or undefined if it doesn't exist. */
@@ -39,19 +42,17 @@ export async function getIngestRunById(
   db: Database,
   id: number,
 ): Promise<IngestRunRow | undefined> {
-  const rows = await db.select().from(ingestRuns).where(eq(ingestRuns.id, id)).limit(1);
-  return rows[0];
+  const row = await db.ingestRun.findUnique({ where: { id } });
+  return row ?? undefined;
 }
 
 /** The most recently completed successful ingest run, or undefined if none have succeeded yet. */
 export async function getLatestSuccessfulIngestRun(
   db: Database,
 ): Promise<IngestRunRow | undefined> {
-  const rows = await db
-    .select()
-    .from(ingestRuns)
-    .where(eq(ingestRuns.status, 'success'))
-    .orderBy(desc(ingestRuns.finishedAt))
-    .limit(1);
-  return rows[0];
+  const row = await db.ingestRun.findFirst({
+    where: { status: 'success' },
+    orderBy: { finishedAt: 'desc' },
+  });
+  return row ?? undefined;
 }

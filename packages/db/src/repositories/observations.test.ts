@@ -1,36 +1,32 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { eq } from 'drizzle-orm';
 import { createDatabase, type Database } from '../client';
 import { runMigrations } from '../migrate';
 import { seed } from '../seed';
 import { testDatabaseUrl } from '../test-utils';
-import { providers } from '../schema/providers';
+import { getProviderByKey } from './providers';
 import { getLatestObservation, upsertObservation } from './observations';
 import { createIngestRun } from './ingest-runs';
 import { insertTestCity } from './test-helpers';
 
 async function seededProviderId(db: Database): Promise<number> {
-  const [row] = await db
-    .select({ id: providers.id })
-    .from(providers)
-    .where(eq(providers.key, 'open-meteo'));
-  if (!row) throw new Error('Seeded provider not found: open-meteo');
-  return row.id;
+  const provider = await getProviderByKey(db, 'open-meteo');
+  if (!provider) throw new Error('Seeded provider not found: open-meteo');
+  return provider.id;
 }
 
 describe('observations repository', () => {
   beforeAll(async () => {
     await runMigrations(testDatabaseUrl());
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       await seed(db);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('upserts on (city, observed_at): a second write for the same instant updates, not duplicates', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const cityId = await insertTestCity(db, 'db-test-observations-upsert', 'Upsert Test City');
       const providerId = await seededProviderId(db);
@@ -69,18 +65,18 @@ describe('observations repository', () => {
       expect(latest?.temperature).toBe('23.00');
       expect(latest?.weatherCode).toBe(2);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('getLatestObservation returns undefined when a city has no observations yet', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const cityId = await insertTestCity(db, 'db-test-observations-empty', 'Empty Test City');
       const latest = await getLatestObservation(db, cityId);
       expect(latest).toBeUndefined();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });

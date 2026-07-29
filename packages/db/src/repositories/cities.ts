@@ -1,7 +1,6 @@
-import { eq } from 'drizzle-orm';
 import type { Database } from '../client';
-import { cities } from '../schema/cities';
-import { regions } from '../schema/regions';
+import type { Prisma } from '../generated/prisma/client';
+import { decimalToString } from '../decimal';
 
 export interface CityWithRegion {
   id: number;
@@ -13,46 +12,37 @@ export interface CityWithRegion {
   region: { name: string; code: string };
 }
 
-function selectCityWithRegion(db: Database) {
-  return db
-    .select({
-      id: cities.id,
-      slug: cities.slug,
-      name: cities.name,
-      latitude: cities.latitude,
-      longitude: cities.longitude,
-      timezone: cities.timezone,
-      regionName: regions.name,
-      regionCode: regions.code,
-    })
-    .from(cities)
-    .innerJoin(regions, eq(cities.regionId, regions.id));
-}
-
-function toCityWithRegion(row: {
+interface CityWithRegionRow {
   id: number;
   slug: string;
   name: string;
-  latitude: string;
-  longitude: string;
+  latitude: Prisma.Decimal;
+  longitude: Prisma.Decimal;
   timezone: string;
-  regionName: string;
-  regionCode: string;
-}): CityWithRegion {
+  region: { name: string; code: string };
+}
+
+function toCityWithRegion(row: CityWithRegionRow): CityWithRegion {
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
-    latitude: row.latitude,
-    longitude: row.longitude,
+    // city.latitude/longitude are Decimal(8, 5) — see prisma/schema.prisma.
+    latitude: decimalToString(row.latitude, 5),
+    longitude: decimalToString(row.longitude, 5),
     timezone: row.timezone,
-    region: { name: row.regionName, code: row.regionCode },
+    region: { name: row.region.name, code: row.region.code },
   };
 }
 
+const regionSelect = { select: { name: true, code: true } } as const;
+
 /** All cities, joined with their region, ordered by name. */
 export async function getCities(db: Database): Promise<CityWithRegion[]> {
-  const rows = await selectCityWithRegion(db).orderBy(cities.name);
+  const rows = await db.city.findMany({
+    include: { region: regionSelect },
+    orderBy: { name: 'asc' },
+  });
   return rows.map(toCityWithRegion);
 }
 
@@ -61,7 +51,9 @@ export async function getCityBySlug(
   db: Database,
   slug: string,
 ): Promise<CityWithRegion | undefined> {
-  const rows = await selectCityWithRegion(db).where(eq(cities.slug, slug)).limit(1);
-  const row = rows[0];
+  const row = await db.city.findUnique({
+    where: { slug },
+    include: { region: regionSelect },
+  });
   return row ? toCityWithRegion(row) : undefined;
 }

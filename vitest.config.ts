@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    exclude: ['**/node_modules/**', '**/dist/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', 'packages/db/src/generated/**'],
     globals: false,
     testTimeout: 15000,
     // Integration test files across packages/{db,api,ingest} share one live Postgres instance and

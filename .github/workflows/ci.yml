@@ -43,6 +43,11 @@ jobs:
 
       - run: npm ci
 
+      # Generates packages/db/src/generated/prisma — typecheck and every test below import from
+      # it, so this has to run before either. Needs no live database (see prisma.config.ts).
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
       # Fast, no-database checks first (constitution Development Workflow: fail fast before the
       # slower live-database steps).
       - name: Lint (enforces the 600-line file-size ceiling, spec SC-005)

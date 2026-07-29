@@ -8,16 +8,16 @@ import { buildApp } from './app';
 describe('buildApp', () => {
   beforeAll(async () => {
     await runMigrations(testDatabaseUrl());
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       await seed(db);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('registers no data-mutating route (constitution Principle III, spec FR-007/SC-003)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       await app.ready();
@@ -34,12 +34,12 @@ describe('buildApp', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('responds with a JSON error body (not HTML/a stack trace) for an unknown route', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: '/api/does-not-exist' });
@@ -50,12 +50,12 @@ describe('buildApp', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('serves a valid OpenAPI document (SC-005)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: '/api/openapi.json' });
@@ -67,7 +67,7 @@ describe('buildApp', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });

@@ -13,16 +13,16 @@ afterEach(() => {
 describe('runCycle', () => {
   beforeAll(async () => {
     await runMigrations(testDatabaseUrl());
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       await seed(db);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it("a single city's fetch failure does not prevent the others from succeeding (SC-004)", async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const provider = await getProviderByKey(db, 'open-meteo');
       if (!provider) throw new Error('seeded provider missing');
@@ -52,12 +52,12 @@ describe('runCycle', () => {
       expect(result.succeededCities).not.toContain('portland-us');
       expect(result.succeededCities).toContain('tokyo-jp');
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('records zero failures when every city succeeds', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       vi.stubGlobal(
         'fetch',
@@ -74,7 +74,7 @@ describe('runCycle', () => {
       expect(result.failedCities).toHaveLength(0);
       expect(result.succeededCities.length).toBeGreaterThanOrEqual(10);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });

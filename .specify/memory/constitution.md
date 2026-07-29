@@ -1,5 +1,15 @@
 <!--
 Sync Impact Report
+- Version change: 1.0.0 → 1.0.1 (patch: wording/technology-reference correction)
+- Modified principles: none (Technology & Delivery Constraints' Stack line only — Drizzle ORM /
+  drizzle-kit → Prisma ORM / Prisma Migrate; Principle IV was already tool-agnostic and needed no
+  change)
+- Added sections: none
+- Removed sections: none
+- Templates requiring updates: none (no template references the ORM by name)
+- Follow-up TODOs: none.
+
+Prior report (1.0.0, initial ratification):
 - Version change: [TEMPLATE] → 1.0.0 (initial ratification)
 - Modified principles: n/a (first fill of template placeholders)
 - Added sections: Core Principles (I–VI), Technology & Delivery Constraints, Development Workflow,
@@ -88,8 +98,8 @@ diff.
 
 ## Technology & Delivery Constraints
 
-- **Stack**: React (Vite) SPA, Node.js (Fastify) API, PostgreSQL via Drizzle ORM with
-  `drizzle-kit`-generated migrations, Tailwind CSS, React Aria Components as the accessible
+- **Stack**: React (Vite) SPA, Node.js (Fastify) API, PostgreSQL via Prisma ORM with
+  Prisma Migrate-generated migrations, Tailwind CSS, React Aria Components as the accessible
   component library, TypeScript throughout.
 - **Architecture**: npm workspaces monorepo (`packages/db`, `packages/api`, `packages/ingest`,
   `packages/ui`, `packages/web`) so the database layer, API layer, ingestion worker, and component
@@ -132,4 +142,4 @@ MUST record the conflict and justification in that plan's Complexity Tracking ta
 silently deviating. Use `CLAUDE.md` for day-to-day agent operating instructions; this document is
 the source of truth when the two disagree.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-27 | **Last Amended**: 2026-07-27
+**Version**: 1.0.1 | **Ratified**: 2026-07-27 | **Last Amended**: 2026-07-28

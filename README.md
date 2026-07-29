@@ -71,13 +71,13 @@ npm workspaces monorepo; every package under `packages/` has its own `package.js
 `tsconfig.json` (extending the shared [`tsconfig.base.json`](tsconfig.base.json)) and is picked up
 automatically by the root `lint` / `typecheck` / `test` scripts — no per-package wiring needed.
 
-| Package           | Purpose                                                                                            |
-| ----------------- | -------------------------------------------------------------------------------------------------- |
-| `packages/db`     | Drizzle ORM schema, checked-in SQL migrations, least-privilege role setup, seed data, repositories |
-| `packages/api`    | Fastify REST API (read-only `GET` routes only, OpenAPI docs at `/api/docs`)                        |
-| `packages/ingest` | Scheduled worker that pulls weather data from Open-Meteo (on boot, then hourly)                    |
-| `packages/ui`     | Accessible component library (React Aria Components + Tailwind)                                    |
-| `packages/web`    | The Vite/React SPA — city search + per-city Hourly/Daily forecast browser                          |
+| Package           | Purpose                                                                                       |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `packages/db`     | Prisma schema, checked-in SQL migrations, least-privilege role setup, seed data, repositories |
+| `packages/api`    | Fastify REST API (read-only `GET` routes only, OpenAPI docs at `/api/docs`)                   |
+| `packages/ingest` | Scheduled worker that pulls weather data from Open-Meteo (on boot, then hourly)               |
+| `packages/ui`     | Accessible component library (React Aria Components + Tailwind)                               |
+| `packages/web`    | The Vite/React SPA — city search + per-city Hourly/Daily forecast browser                     |
 
 Adding a new package: create `packages/<name>/package.json` (with a `typecheck` script) and
 `tsconfig.json` extending `../../tsconfig.base.json`; `npm install` at the root links it, no
@@ -126,8 +126,14 @@ By default it targets `http://localhost:8080` (the compose stack's `web` service
 
 ## Database
 
-- Schema is normalized (3NF) and lives in `packages/db/src/schema/`; every change ships as a
-  generated, checked-in migration (`npm run db:generate`, never `drizzle-kit push`).
+- Schema is normalized (3NF) and lives in [`packages/db/prisma/schema.prisma`](packages/db/prisma/schema.prisma)
+  (Prisma ORM, via [`@prisma/adapter-pg`](https://www.prisma.io/docs/orm/overview/databases/postgresql) —
+  see [`packages/db/src/client.ts`](packages/db/src/client.ts)). Every schema change ships as a
+  generated, checked-in migration: author it with `npm run db:migrate:dev` (dev-only — creates and
+  applies a new `packages/db/prisma/migrations/*` folder), never `prisma db push`. `npm run
+db:generate` is a separate, non-destructive step that only refreshes the generated Prisma Client
+  (`packages/db/src/generated/`, gitignored) from the current schema — run it after pulling a
+  schema change, and it also runs automatically as part of every Docker build and CI job.
 - Three Postgres roles enforce that **the public surface is read-only**: `weather_owner` (runs
   migrations, owns all objects), `weather_ingest` (`SELECT`, plus `INSERT`/`UPDATE` only on the
   tables the ingestion job populates), `weather_api` (`SELECT` only, on every table present and
@@ -135,6 +141,12 @@ By default it targets `http://localhost:8080` (the compose stack's `web` service
   [`packages/db/src/apply-roles.ts`](packages/db/src/apply-roles.ts).
 - Weather data is never written by user request — only by the scheduled ingestion worker
   (`packages/ingest`).
+- The project moved from Drizzle ORM to Prisma; the migration history was rebaselined rather than
+  translated statement-by-statement (verified schema-equivalent against the prior Drizzle
+  migration before the swap — see the commit history). Any existing database, including the
+  self-hosted live site above, needs a fresh `docker compose down -v` + `up` rather than an
+  in-place upgrade — all data is re-ingestible from Open-Meteo within one cycle, so this is a
+  non-issue in practice.
 
 ## API
 

@@ -8,16 +8,16 @@ import { getProviderByKey } from './providers';
 describe('providers repository', () => {
   beforeAll(async () => {
     await runMigrations(testDatabaseUrl());
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       await seed(db);
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('finds a seeded provider by key and returns undefined for an unknown one', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const found = await getProviderByKey(db, 'open-meteo');
       expect(found).toMatchObject({ name: 'Open-Meteo' });
@@ -25,7 +25,7 @@ describe('providers repository', () => {
       const missing = await getProviderByKey(db, 'nonexistent-provider');
       expect(missing).toBeUndefined();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });

@@ -1,6 +1,4 @@
 import { createDatabase, requireEnv, type Database } from './client';
-import { regions, cities, providers, measurementTypes, units, providerUnits } from './schema/index';
-import { weatherCodes } from './schema/lookups';
 import {
   REGIONS,
   CITIES,
@@ -17,33 +15,30 @@ import {
  */
 export async function seed(db: Database): Promise<void> {
   for (const code of WEATHER_CODES) {
-    await db
-      .insert(weatherCodes)
-      .values(code)
-      .onConflictDoUpdate({
-        target: weatherCodes.code,
-        set: { label: code.label, iconKey: code.iconKey },
-      });
+    await db.weatherCode.upsert({
+      where: { code: code.code },
+      create: code,
+      update: { label: code.label, iconKey: code.iconKey },
+    });
   }
 
   for (const provider of PROVIDERS) {
-    await db
-      .insert(providers)
-      .values(provider)
-      .onConflictDoUpdate({ target: providers.key, set: { name: provider.name } });
+    await db.provider.upsert({
+      where: { key: provider.key },
+      create: provider,
+      update: { name: provider.name },
+    });
   }
 
   for (const measurementType of MEASUREMENT_TYPES) {
-    await db
-      .insert(measurementTypes)
-      .values(measurementType)
-      .onConflictDoUpdate({
-        target: measurementTypes.key,
-        set: { displayName: measurementType.displayName },
-      });
+    await db.measurementType.upsert({
+      where: { key: measurementType.key },
+      create: measurementType,
+      update: { displayName: measurementType.displayName },
+    });
   }
 
-  const measurementTypeRows = await db.select().from(measurementTypes);
+  const measurementTypeRows = await db.measurementType.findMany();
   const measurementTypeIdByKey = new Map(measurementTypeRows.map((row) => [row.key, row.id]));
 
   for (const unit of UNITS) {
@@ -51,20 +46,21 @@ export async function seed(db: Database): Promise<void> {
     if (!measurementTypeId) {
       throw new Error(`Unknown measurement type key in seed data: ${unit.measurementTypeKey}`);
     }
-    await db
-      .insert(units)
-      .values({
+    await db.unit.upsert({
+      where: { key: unit.key },
+      create: {
         key: unit.key,
         measurementTypeId,
         symbol: unit.symbol,
         displayName: unit.displayName,
-      })
-      .onConflictDoUpdate({ target: units.key, set: { symbol: unit.symbol } });
+      },
+      update: { symbol: unit.symbol },
+    });
   }
 
-  const providerRows = await db.select().from(providers);
+  const providerRows = await db.provider.findMany();
   const providerIdByKey = new Map(providerRows.map((row) => [row.key, row.id]));
-  const unitRows = await db.select().from(units);
+  const unitRows = await db.unit.findMany();
   const unitIdByKey = new Map(unitRows.map((row) => [row.key, row.id]));
 
   for (const assignment of PROVIDER_UNIT_ASSIGNMENTS) {
@@ -74,23 +70,22 @@ export async function seed(db: Database): Promise<void> {
     if (!providerId || !measurementTypeId || !unitId) {
       throw new Error(`Could not resolve provider-unit assignment: ${JSON.stringify(assignment)}`);
     }
-    await db
-      .insert(providerUnits)
-      .values({ providerId, measurementTypeId, unitId })
-      .onConflictDoUpdate({
-        target: [providerUnits.providerId, providerUnits.measurementTypeId],
-        set: { unitId },
-      });
+    await db.providerUnit.upsert({
+      where: { providerId_measurementTypeId: { providerId, measurementTypeId } },
+      create: { providerId, measurementTypeId, unitId },
+      update: { unitId },
+    });
   }
 
   for (const region of REGIONS) {
-    await db
-      .insert(regions)
-      .values(region)
-      .onConflictDoUpdate({ target: regions.code, set: { name: region.name } });
+    await db.region.upsert({
+      where: { code: region.code },
+      create: region,
+      update: { name: region.name },
+    });
   }
 
-  const regionRows = await db.select().from(regions);
+  const regionRows = await db.region.findMany();
   const regionIdByCode = new Map(regionRows.map((row) => [row.code, row.id]));
 
   for (const city of CITIES) {
@@ -98,31 +93,29 @@ export async function seed(db: Database): Promise<void> {
     if (!regionId) {
       throw new Error(`Unknown region code in seed data: ${city.regionCode}`);
     }
-    await db
-      .insert(cities)
-      .values({
+    await db.city.upsert({
+      where: { slug: city.slug },
+      create: {
         regionId,
         name: city.name,
         slug: city.slug,
         latitude: city.latitude,
         longitude: city.longitude,
         timezone: city.timezone,
-      })
-      .onConflictDoUpdate({
-        target: cities.slug,
-        set: { name: city.name, latitude: city.latitude, longitude: city.longitude },
-      });
+      },
+      update: { name: city.name, latitude: city.latitude, longitude: city.longitude },
+    });
   }
 }
 
 async function main(): Promise<void> {
-  const { db, pool } = createDatabase(requireEnv('DATABASE_URL_OWNER'));
+  const { db, disconnect } = createDatabase(requireEnv('DATABASE_URL_OWNER'));
   try {
     await seed(db);
-    const cityRows = await db.select({ id: cities.id }).from(cities);
-    console.log(`Seed complete. ${cityRows.length} cities present.`);
+    const cityCount = await db.city.count();
+    console.log(`Seed complete. ${cityCount} cities present.`);
   } finally {
-    await pool.end();
+    await disconnect();
   }
 }
 

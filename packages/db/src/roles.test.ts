@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { Pool } from 'pg';
-import { createDatabase } from './client.js';
+import { createAdminPool } from './client.js';
 import { runMigrations } from './migrate.js';
 import { applyRoles } from './apply-roles.js';
 import { testDatabaseUrl } from './test-utils.js';
@@ -19,7 +19,7 @@ describe('applyRoles', () => {
   beforeAll(async () => {
     const url = testDatabaseUrl();
     await runMigrations(url);
-    const { pool } = createDatabase(url);
+    const pool = createAdminPool(url);
     try {
       await applyRoles(pool, { ingest: TEST_INGEST_PASSWORD, api: TEST_API_PASSWORD });
     } finally {
@@ -28,7 +28,7 @@ describe('applyRoles', () => {
   });
 
   it('grants weather_api SELECT-only privileges (spec FR-007)', async () => {
-    const { pool } = createDatabase(testDatabaseUrl());
+    const pool = createAdminPool(testDatabaseUrl());
     try {
       const { rows } = await pool.query<{ can_select: boolean; can_insert: boolean }>(
         `SELECT
@@ -43,7 +43,7 @@ describe('applyRoles', () => {
   });
 
   it('grants weather_ingest write access only to the tables it populates', async () => {
-    const { pool } = createDatabase(testDatabaseUrl());
+    const pool = createAdminPool(testDatabaseUrl());
     try {
       const { rows } = await pool.query<{
         can_insert_observations: boolean;

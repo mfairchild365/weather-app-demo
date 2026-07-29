@@ -1,9 +1,4 @@
-import { eq } from 'drizzle-orm';
 import type { Database } from '../client';
-import { regions } from '../schema/regions';
-import { cities } from '../schema/cities';
-import { observations } from '../schema/observations';
-import { forecastHourly, forecastDaily } from '../schema/forecasts';
 
 /**
  * Inserts (or reuses, if already present from an earlier run) a city under a dedicated "ZZ" test
@@ -22,37 +17,33 @@ import { forecastHourly, forecastDaily } from '../schema/forecasts';
  *   "no data yet" tests true on a second local run, not just the first.
  */
 export async function insertTestCity(db: Database, slug: string, name: string): Promise<number> {
-  const existing = await db.select({ id: cities.id }).from(cities).where(eq(cities.slug, slug));
-  const existingRow = existing[0];
+  const existing = await db.city.findUnique({ where: { slug }, select: { id: true } });
 
   const cityId =
-    existingRow?.id ??
+    existing?.id ??
     (await (async () => {
-      const [region] = await db
-        .insert(regions)
-        .values({ name: 'DB Test Region', code: 'ZZ' })
-        .onConflictDoUpdate({ target: regions.code, set: { name: 'DB Test Region' } })
-        .returning({ id: regions.id });
-      if (!region) throw new Error('failed to insert test region');
+      const region = await db.region.upsert({
+        where: { code: 'ZZ' },
+        create: { name: 'DB Test Region', code: 'ZZ' },
+        update: { name: 'DB Test Region' },
+      });
 
-      const [city] = await db
-        .insert(cities)
-        .values({
+      const city = await db.city.create({
+        data: {
           regionId: region.id,
           name,
           slug,
           latitude: '0.00000',
           longitude: '0.00000',
           timezone: 'UTC',
-        })
-        .returning({ id: cities.id });
-      if (!city) throw new Error('failed to insert test city');
+        },
+      });
       return city.id;
     })());
 
-  await db.delete(observations).where(eq(observations.cityId, cityId));
-  await db.delete(forecastHourly).where(eq(forecastHourly.cityId, cityId));
-  await db.delete(forecastDaily).where(eq(forecastDaily.cityId, cityId));
+  await db.observation.deleteMany({ where: { cityId } });
+  await db.forecastHourly.deleteMany({ where: { cityId } });
+  await db.forecastDaily.deleteMany({ where: { cityId } });
 
   return cityId;
 }

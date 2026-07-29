@@ -10,7 +10,7 @@ describe('OpenAPI document and docs UI', () => {
   });
 
   it('/api/openapi.json documents every non-hidden route with a response schema (SC-005)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: '/api/openapi.json' });
@@ -22,12 +22,12 @@ describe('OpenAPI document and docs UI', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('/api/docs serves the browsable Swagger UI', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: '/api/docs' });
@@ -37,7 +37,7 @@ describe('OpenAPI document and docs UI', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });

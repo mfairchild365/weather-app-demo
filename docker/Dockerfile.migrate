@@ -12,13 +12,24 @@ COPY packages/ui/package.json packages/ui/package.json
 COPY packages/web/package.json packages/web/package.json
 RUN npm ci
 
+# Prisma Client is generated (not published in node_modules) — needs the schema present, then
+# emits plain TypeScript into packages/db/src/generated (see prisma.config.ts). No Rust query
+# engine to fetch (Prisma 7 dropped it), so nothing platform-specific about this step. This image
+# also runs `prisma migrate deploy` itself (via src/migrate.ts) at container start, which needs
+# the same schema/migrations/config present at runtime, not just for the generate step.
+COPY prisma.config.ts ./
+COPY packages/db/prisma ./packages/db/prisma
+RUN npx prisma generate --config prisma.config.ts
+
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY tsconfig.base.json ./
+COPY prisma.config.ts ./
 COPY packages/db ./packages/db
 COPY docker/migrate-entrypoint.sh ./migrate-entrypoint.sh
+COPY --from=deps /app/packages/db/src/generated ./packages/db/src/generated
 RUN chown -R node:node /app
 USER node
 

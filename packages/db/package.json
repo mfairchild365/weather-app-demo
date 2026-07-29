@@ -14,19 +14,21 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "prisma generate --config ../../prisma.config.ts",
     "db:migrate": "tsx src/migrate.ts",
+    "db:migrate:dev": "prisma migrate dev --config ../../prisma.config.ts",
     "db:roles": "tsx src/apply-roles.ts",
     "db:seed": "tsx src/seed.ts",
     "db:smoke": "tsx src/smoke.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.38.4",
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
     "pg": "^8.13.1"
   },
   "devDependencies": {
     "@types/pg": "^8.11.11",
-    "drizzle-kit": "^0.30.4",
+    "prisma": "^7.9.1",
     "tsx": "^4.19.2"
   }
 }

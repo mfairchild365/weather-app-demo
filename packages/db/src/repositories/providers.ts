@@ -1,14 +1,19 @@
-import { eq } from 'drizzle-orm';
 import type { Database } from '../client';
-import { providers } from '../schema/providers';
 
-export type ProviderRow = typeof providers.$inferSelect;
+export interface ProviderRow {
+  id: number;
+  key: string;
+  name: string;
+  attributionUrl: string;
+  license: string;
+  createdAt: Date;
+}
 
 /** A provider by its stable key (e.g. `open-meteo`), or undefined if it hasn't been seeded. */
 export async function getProviderByKey(
   db: Database,
   key: string,
 ): Promise<ProviderRow | undefined> {
-  const rows = await db.select().from(providers).where(eq(providers.key, key)).limit(1);
-  return rows[0];
+  const row = await db.provider.findUnique({ where: { key } });
+  return row ?? undefined;
 }

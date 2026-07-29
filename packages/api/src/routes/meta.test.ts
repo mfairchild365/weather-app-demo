@@ -13,7 +13,7 @@ import { buildApp } from '../app';
 describe('GET /api/meta/freshness', () => {
   beforeAll(async () => {
     await runMigrations(testDatabaseUrl());
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       await seed(db);
       const provider = await getProviderByKey(db, 'open-meteo');
@@ -21,12 +21,12 @@ describe('GET /api/meta/freshness', () => {
       const runId = await createIngestRun(db, provider.id);
       await completeIngestRun(db, runId, { status: 'success' });
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 
   it('reflects the most recent successful ingest run (US3.1)', async () => {
-    const { db, pool } = createDatabase(testDatabaseUrl());
+    const { db, disconnect } = createDatabase(testDatabaseUrl());
     try {
       const app = await buildApp(db, { logger: false });
       const response = await app.inject({ method: 'GET', url: '/api/meta/freshness' });
@@ -38,7 +38,7 @@ describe('GET /api/meta/freshness', () => {
 
       await app.close();
     } finally {
-      await pool.end();
+      await disconnect();
     }
   });
 });
