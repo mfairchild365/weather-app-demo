@@ -1,0 +1,11 @@
+{
+  "$comment": "Pins every skill vendored under .github/skills/ (synced into .claude/skills/ by scripts/sync-claude-skills.sh) to a specific version and content checksum, verified by scripts/check-harness.ts (`npm run harness:check`). Scope is deliberately limited to .github/skills/ — the skills this repo authors and owns; the .claude/skills/speckit-* skills are installed and versioned by the spec-kit tool itself (see .specify/integration.json's own `version` field), not by this manifest. Regenerate a skill's sha256 with `npm run harness:check` after bumping its SKILL.md `version` field — it prints the actual hash on mismatch.",
+  "skills": [
+    {
+      "name": "building-accessible-ui",
+      "version": "1.0.0",
+      "source": "in-repo (authored for weather-demo; not vendored from an external skill repository)",
+      "sha256": "4186a7cb0ad524aa35eff43dd29f78cdced654f98f545f0ad56013b47c1b1d98"
+    }
+  ]
+}

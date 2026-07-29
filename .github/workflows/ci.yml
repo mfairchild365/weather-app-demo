@@ -59,6 +59,9 @@ jobs:
       - name: Format check
         run: npm run format:check
 
+      - name: Agent skill harness check
+        run: npm run harness:check
+
       # packages/db/src/{migrate,apply-roles,seed}.test.ts exercise these same operations against
       # TEST_DATABASE_URL, but the suite doesn't provision a fresh database on its own — apply
       # migrations/roles/seed against the service container first so both the tests and the
