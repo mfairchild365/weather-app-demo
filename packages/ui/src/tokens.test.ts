@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
  */
 const LIGHT = {
   bg: '#ffffff',
+  surface: '#f8fafc',
   text: '#1a1a1a',
   mutedText: '#4b5563',
   accent: '#0f766e',
@@ -16,6 +17,7 @@ const LIGHT = {
 
 const DARK = {
   bg: '#0f1115',
+  surface: '#1a1d23',
   text: '#f3f4f6',
   mutedText: '#9ca3af',
   accent: '#5eead4',
@@ -58,6 +60,7 @@ describe('design token contrast (WCAG 2.2 AA)', () => {
     ['light danger/bg', LIGHT.danger, LIGHT.bg, 4.5],
     ['light focus/bg (non-text)', LIGHT.focus, LIGHT.bg, 3],
     ['light bg-on-focus (primary Button text)', LIGHT.bg, LIGHT.focus, 4.5],
+    ['light text/surface (ToggleButton pressed state)', LIGHT.text, LIGHT.surface, 4.5],
     ['dark text/bg', DARK.text, DARK.bg, 4.5],
     ['dark muted-text/bg', DARK.mutedText, DARK.bg, 4.5],
     ['dark accent/bg', DARK.accent, DARK.bg, 4.5],
@@ -65,6 +68,7 @@ describe('design token contrast (WCAG 2.2 AA)', () => {
     ['dark danger/bg', DARK.danger, DARK.bg, 4.5],
     ['dark focus/bg (non-text)', DARK.focus, DARK.bg, 3],
     ['dark bg-on-focus (primary Button text)', DARK.bg, DARK.focus, 4.5],
+    ['dark text/surface (ToggleButton pressed state)', DARK.text, DARK.surface, 4.5],
   ])('%s meets its threshold', (_label, fg, bg, minRatio) => {
     expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(minRatio);
   });

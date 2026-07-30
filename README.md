@@ -182,6 +182,14 @@ locally — see `packages/web/vite.config.ts`). No direct database access, ever.
 | `/`             | Every seeded city, filterable by name/region, linking to its forecast                |
 | `/cities/:slug` | Current conditions, freshness, and an Hourly/Daily forecast table + decorative chart |
 
+**Visitor context** (`specs/006-visitor-context`): a visitor can pin one city as their "home city"
+from its detail page. The pin is stored client-side only (`localStorage`, versioned, degrading
+gracefully to in-memory when storage is blocked) — no server route, database table, or write-scoped
+credential is involved, keeping the public API's read-only guarantee (Principle III) intact. Once
+pinned, a header link to that city appears on every page and it sorts first in the city list. A
+permanently visible "Forget my saved preferences" control clears it. See the spec's own
+`## Accessibility` section for the full contract.
+
 ## Accessibility
 
 Every user-facing feature's spec includes a full accessibility contract (components, accessible
@@ -200,9 +208,11 @@ a promise to test later):
 - **Automated, end-to-end**: `e2e/*.spec.ts` (Playwright + `@axe-core/playwright`) runs a
   full-page scan against the live site for the city list (default/filtered/empty-result) and city
   detail (hourly/daily/not-found) pages; a keyboard-only journey from the skip link through a city
-  link, page-change focus, and arrow-key tab switching; a 320 CSS px reflow check; and a
-  `forced-colors: active` pass confirming focus and tab-selected indicators stay visible. These run
-  in CI on every PR (`.github/workflows/ci.yml`'s `e2e` job) with the HTML report uploaded as an
+  link, page-change focus, and arrow-key tab switching; a 320 CSS px reflow check; a
+  `forced-colors: active` pass confirming focus and tab-selected indicators stay visible; and
+  (`visitor-context.spec.ts`) pinning a city, reload persistence, list reordering, focus retention
+  through the forget control, and a keyboard-only walk of the new header controls. These run in CI
+  on every PR (`.github/workflows/ci.yml`'s `e2e` job) with the HTML report uploaded as an
   artifact.
 - **Manual**: keyboard-only pass and a visual check under `forced-colors: active` in a real
   browser, alongside the automated suite above.
@@ -238,6 +248,11 @@ full list with affected personas):
   line literally or find it unclear. Every joke line keeps its plain-language fact directly
   adjacent — no information is ever _only_ available via the joke — but the risk of misreading
   isn't eliminated.
+- The pinned home city (spec `006-visitor-context`) is scoped to one browser profile on one
+  device — no account, no cross-device sync — and is lost if the visitor's browser blocks
+  persistent storage (announced once, at the point of the first failed save). "Forget my saved
+  preferences" has no confirmation dialog; the only recovery from a mis-press is re-pinning the
+  city.
 
 ## CI/CD
 
@@ -261,3 +276,7 @@ spec-kit:
   the public SPA, with its full accessibility contract
 - [`specs/004-probably-weather-personality`](specs/004-probably-weather-personality/spec.md) —
   the "Probably Weather" voice, visual identity, and weather icons — a re-skin, not a rebuild
+- [`specs/005-live-region-announcer`](specs/005-live-region-announcer/spec.md) — one shared
+  live-region announcer serializing every screen-reader announcement in the app
+- [`specs/006-visitor-context`](specs/006-visitor-context/spec.md) — a client-only pinned home
+  city, persisted in `localStorage`, with a header link and a "forget my preferences" control

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
 import { axe } from 'vitest-axe';
 import { resetAnnouncer } from '@weather-demo/ui';
+import { renderWithVisitorContext } from '../testing/renderWithVisitorContext';
 import { CityListPage } from './CityListPage';
 
 const CITIES = [
@@ -12,17 +12,15 @@ const CITIES = [
   { slug: 'london-gb', name: 'London', region: { name: 'United Kingdom', code: 'GB' } },
 ];
 
+const TOLEDO_HOME_CITY = { slug: 'toledo-us', name: 'Toledo', regionName: 'United States' };
+
 function stubFetchSuccess(): void {
   globalThis.fetch = (async () =>
     ({ ok: true, status: 200, json: async () => CITIES }) as Response) as typeof fetch;
 }
 
-function renderPage(): void {
-  render(
-    <MemoryRouter>
-      <CityListPage />
-    </MemoryRouter>,
-  );
+function renderPage(options?: { homeCity?: typeof TOLEDO_HOME_CITY }) {
+  return renderWithVisitorContext(<CityListPage />, options);
 }
 
 afterEach(() => {
@@ -127,23 +125,58 @@ describe('CityListPage', () => {
 
   it('has no axe violations in the default, filtered, empty-result, and error states', async () => {
     stubFetchSuccess();
-    const { container, unmount } = render(
-      <MemoryRouter>
-        <CityListPage />
-      </MemoryRouter>,
-    );
+    const { container, unmount } = renderPage();
     await screen.findByRole('link', { name: 'Tokyo, Japan' });
     expect(await axe(container)).toHaveNoViolations();
     unmount();
 
     globalThis.fetch = (async () =>
       ({ ok: false, status: 500, json: async () => ({}) }) as Response) as typeof fetch;
-    const errorRender = render(
-      <MemoryRouter>
-        <CityListPage />
-      </MemoryRouter>,
-    );
+    const errorRender = renderPage();
     await waitFor(() => expect(document.getElementById('city-list-error')).toHaveTextContent(/./));
     expect(await axe(errorRender.container)).toHaveNoViolations();
+  });
+
+  describe('pinned home city (spec 006)', () => {
+    it('sorts the pinned city first and marks it in the link text', async () => {
+      stubFetchSuccess();
+      renderPage({ homeCity: TOLEDO_HOME_CITY });
+      await screen.findByRole('link', { name: 'Toledo, United States (home city)' });
+
+      const links = screen.getAllByRole('link');
+      expect(links[0]).toHaveAccessibleName('Toledo, United States (home city)');
+    });
+
+    it('does not reintroduce the pinned city when the search filter excludes it', async () => {
+      stubFetchSuccess();
+      renderPage({ homeCity: TOLEDO_HOME_CITY });
+      await screen.findByRole('link', { name: 'Toledo, United States (home city)' });
+
+      const user = userEvent.setup();
+      await user.type(screen.getByRole('searchbox', { name: 'Search cities' }), 'tokyo');
+
+      await waitFor(() => {
+        expect(screen.getByRole('link', { name: 'Tokyo, Japan' })).toBeInTheDocument();
+        expect(
+          screen.queryByRole('link', { name: /Toledo, United States/ }),
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it('does not change the debounced count message', async () => {
+      stubFetchSuccess();
+      renderPage({ homeCity: TOLEDO_HOME_CITY });
+      await screen.findByRole('link', { name: 'Toledo, United States (home city)' });
+      await waitFor(() =>
+        expect(document.getElementById('city-list-status')).toHaveTextContent('3 cities'),
+      );
+    });
+
+    it('has no axe violations with a city pinned', async () => {
+      stubFetchSuccess();
+      const { container } = renderPage({ homeCity: TOLEDO_HOME_CITY });
+      await screen.findByRole('link', { name: 'Toledo, United States (home city)' });
+      expect(await axe(container)).toHaveNoViolations();
+    });
   });
 });

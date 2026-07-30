@@ -6,6 +6,8 @@ import { copy } from './copy';
 import { CityListPage } from './routes/CityListPage';
 import { CityDetailPage } from './routes/CityDetailPage';
 import { NotFoundPage } from './routes/NotFoundPage';
+import { HomeCityLink } from './components/HomeCityLink';
+import { ForgetPreferencesButton } from './components/ForgetPreferencesButton';
 
 const MAIN_ID = 'maincontent';
 
@@ -16,7 +18,7 @@ export function App() {
   return (
     <div className="flex min-h-screen flex-col bg-[var(--color-bg)] text-[var(--color-text)]">
       <SkipLink targetId={MAIN_ID} />
-      <header className="border-b border-[var(--color-border)] px-4 py-3">
+      <header className="flex min-h-10 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[var(--color-border)] px-4 py-3">
         <Link
           to="/"
           className="inline-flex items-center gap-2 font-display text-lg font-semibold text-[var(--color-text)] no-underline"
@@ -24,6 +26,15 @@ export function App() {
           <Mascot className="h-6 w-6" />
           {copy.brand}
         </Link>
+        {/* min-h above reserves the header's populated height so this link appearing/disappearing
+            never reflows <main> under a control that currently has focus (spec 006 `dynamic_state`).
+            flex-wrap (here and on the header itself) lets this group drop to its own row at
+            narrow viewports instead of forcing horizontal scroll (references/reflow.md: "controls
+            rearrange vertically" rather than being clipped or truncated). */}
+        <div className="flex flex-wrap items-center gap-4">
+          <HomeCityLink />
+          <ForgetPreferencesButton />
+        </div>
       </header>
 
       <main

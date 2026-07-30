@@ -35,6 +35,18 @@ export const copy = {
 
   noObservation: 'No current conditions yet.',
 
+  // Visitor context announcements (spec 006). Accessible names for the controls that trigger
+  // these live inline in their components, per this file's header rule — only the confirmation
+  // text routed through announce() lives here.
+  homeCitySet: (cityLabel: string) => `${cityLabel} is now your home city. Noted.`,
+  homeCityCleared: (cityLabel: string) => `${cityLabel} is no longer your home city.`,
+  homeCityUnavailable: (cityLabel: string) =>
+    `${cityLabel} is no longer available. Home city cleared.`,
+  preferencesForgotten: 'Saved preferences forgotten. Clean slate.',
+  preferencesNothingToForget: 'Nothing saved to forget.',
+  preferencesNotPersisted:
+    'This browser will not let us store anything. Your home city lasts until you close the tab.',
+
   // Easter eggs (spec 004 FR-010) — same #city-list-status region, no new surface.
   EASTER_EGGS: {
     xyzzy: 'Nothing here. You knew that.',

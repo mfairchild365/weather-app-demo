@@ -11,6 +11,7 @@
  * --color-danger / --color-bg       >= 4.5:1 (error text)
  * --color-focus / --color-bg        >= 3:1   (focus indicators; non-text)
  * --color-bg / --color-focus        >= 4.5:1 (primary Button text-on-accent — Button.tsx)
+ * --color-text / --color-surface    >= 4.5:1 (ToggleButton pressed background — ToggleButton.tsx)
  */
 
 :root {
