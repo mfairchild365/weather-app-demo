@@ -1,14 +1,14 @@
 # Architecture
 
 This document explains how `weather-demo` (public name: "Probably Weather") is put together and,
-more importantly, *why* — the constraints each decision is a response to. For the governing rules
+more importantly, _why_ — the constraints each decision is a response to. For the governing rules
 themselves see [`.specify/memory/constitution.md`](.specify/memory/constitution.md); this document
 is the narrative explanation, not a duplicate of the rules.
 
 ## What this project is optimizing for
 
 Before the folder structure makes sense, it helps to know what kind of project this is: a
-**portfolio demo**, built feature-by-feature under spec-kit, whose job is to *demonstrate*
+**portfolio demo**, built feature-by-feature under spec-kit, whose job is to _demonstrate_
 engineering judgment as much as to serve weather data. That framing explains several choices that
 would look like over-engineering in a plain CRUD app:
 
@@ -51,16 +51,16 @@ talk to Postgres at all.**
 ## Why a monorepo with five packages
 
 `packages/{db,api,ingest,ui,web}` are separate npm workspaces, each independently buildable,
-typecheckable, and testable. The split follows *deployment boundary* and *privilege boundary*
+typecheckable, and testable. The split follows _deployment boundary_ and _privilege boundary_
 first, reuse second:
 
-| Package | Runs as | Why it's separate |
-|---|---|---|
-| `packages/db` | (library, not a process) | Owns the Prisma schema, checked-in migrations, repository functions, and role/grant DDL. Everything that touches SQL goes through here — `api` and `ingest` never import Prisma directly, they import typed repository functions. This is what makes "no raw SQL from request input" (constitution Principle III) checkable by reading imports rather than auditing every route. |
-| `packages/api` | its own container, `weather_api` role | The only process the public internet can reach for data. Connects to Postgres with a role that has **no write grant on anything** — not an application-level check, a database-level guarantee. |
-| `packages/ingest` | its own container, `weather_ingest` role | The only process allowed to write. Runs on a schedule, not on request, so there is no user-triggered code path that touches a write-capable credential. |
-| `packages/ui` | (library, not a process) | Accessible component primitives (React Aria Components wrappers) with zero knowledge of weather domain concepts — `Button`, `Table`, `Tabs`, `SparklineChart`, the live-region `announcer`. Framework-and-a11y concerns live here so `web` doesn't have to re-solve them per feature. |
-| `packages/web` | static files behind nginx | The SPA. Built to static assets at container build time — there is no Node server for the frontend at runtime, which removes an entire class of runtime dependency from the public-facing surface. |
+| Package           | Runs as                                  | Why it's separate                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/db`     | (library, not a process)                 | Owns the Prisma schema, checked-in migrations, repository functions, and role/grant DDL. Everything that touches SQL goes through here — `api` and `ingest` never import Prisma directly, they import typed repository functions. This is what makes "no raw SQL from request input" (constitution Principle III) checkable by reading imports rather than auditing every route. |
+| `packages/api`    | its own container, `weather_api` role    | The only process the public internet can reach for data. Connects to Postgres with a role that has **no write grant on anything** — not an application-level check, a database-level guarantee.                                                                                                                                                                                  |
+| `packages/ingest` | its own container, `weather_ingest` role | The only process allowed to write. Runs on a schedule, not on request, so there is no user-triggered code path that touches a write-capable credential.                                                                                                                                                                                                                          |
+| `packages/ui`     | (library, not a process)                 | Accessible component primitives (React Aria Components wrappers) with zero knowledge of weather domain concepts — `Button`, `Table`, `Tabs`, `SparklineChart`, the live-region `announcer`. Framework-and-a11y concerns live here so `web` doesn't have to re-solve them per feature.                                                                                            |
+| `packages/web`    | static files behind nginx                | The SPA. Built to static assets at container build time — there is no Node server for the frontend at runtime, which removes an entire class of runtime dependency from the public-facing surface.                                                                                                                                                                               |
 
 A new package needs only its own `package.json` (with a `typecheck` script) and a `tsconfig.json`
 extending the shared `tsconfig.base.json`; the root `lint`/`typecheck`/`test` scripts pick it up
@@ -73,7 +73,7 @@ in a spec's plan instead of a reason to cram something into an existing one.
 roles beyond the owner:
 
 - `weather_api` — `SELECT` only, on every table, including future ones (`ALTER DEFAULT
-  PRIVILEGES`).
+PRIVILEGES`).
 - `weather_ingest` — `SELECT` everywhere (it needs to read `cities`/`providers`/lookups to build
   upserts), but `INSERT`/`UPDATE` only on the four tables it actually populates
   (`ingest_runs`, `observations`, `forecast_hourly`, `forecast_daily`). Neither role gets `DELETE`
@@ -165,7 +165,7 @@ hook (`useCities`, `useCityDetail`, `useForecast`). Each of those hooks is a one
 around one `api-client.ts` call plus a dependency array — there is no caching layer, no
 invalidation logic, no request deduplication, because this app has no mutations to invalidate
 against and no data that's fetched from more than one place at once. `useForecast` fetches both
-the hourly *and* daily ranges eagerly on mount rather than lazily on tab switch, specifically so
+the hourly _and_ daily ranges eagerly on mount rather than lazily on tab switch, specifically so
 the Tabs component (an a11y-reviewed pattern) only ever toggles visibility of already-loaded data —
 switching tabs must never trigger a network request or a loading-state flash for a user relying on
 a screen reader to track what just changed. Pulling in a data-fetching library to get cache
@@ -218,14 +218,14 @@ focus/background pair is annotated with the WCAG contrast ratio it must clear, a
 computes the actual contrast ratio from the hex values — a same-file assertion, not a
 design-review eyeball check, so a token can't silently regress contrast. `forced-colors: active` is
 explicitly left to the OS (`forced-color-adjust: auto`) rather than overridden, because
-overriding it is the more common way to *break* Windows High Contrast Mode, not support it.
+overriding it is the more common way to _break_ Windows High Contrast Mode, not support it.
 
 ## Accessibility as a build-time and spec-time constraint, not a checklist
 
 This is a WCAG 2.2 AA project by constitution (Principle I), and the mechanism matters more than
 the target: every UI-touching spec must write out the accessibility contract (components,
 accessible names, keyboard behavior, ARIA state, live regions, testing strategy, known limitations)
-*before* implementation starts, using `.github/skills/building-accessible-ui/SKILL.md` as the
+_before_ implementation starts, using `.github/skills/building-accessible-ui/SKILL.md` as the
 checklist. A spec that renders UI without that section is, by definition, under-specified and
 cannot proceed. This is why `specs/00N-*` directories read like design documents with an
 accessibility section baked in, not retrofitted a11y notes.
@@ -255,8 +255,8 @@ scan must be re-run against the literal artifact being submitted, not a pre-edit
   never mistaken for unrelated concerns.
 - **`packages/db`, `packages/api`, `packages/ingest` integration tests run against a real
   Postgres**, not a mock. Given how much of this project's design is "the database enforces the
-  guarantee," a mocked Postgres would validate the wrong thing — whether the *code* looks right,
-  not whether the *role grants* actually hold.
+  guarantee," a mocked Postgres would validate the wrong thing — whether the _code_ looks right,
+  not whether the _role grants_ actually hold.
 - **Playwright e2e** (`e2e/*.spec.ts`) covers city list, city detail, keyboard navigation, and the
   visitor-context (home city) flow end-to-end in a real browser, with the axe scan riding along.
 - **`npm run harness:check`** is specific to this repo's agent-authoring setup: it verifies that
@@ -281,16 +281,16 @@ Every feature is planned through the spec-kit cycle — `/speckit-specify` → `
 `/speckit-tasks` → `/speckit-implement` — with one `specs/NNN-*` directory per feature
 (`001-platform-foundation-npm` through `006-visitor-context` at present). The constitution requires
 implementation commits to reference the spec they implement. The practical effect, visible
-throughout this codebase, is that non-obvious decisions are annotated with *why* inline (`spec
+throughout this codebase, is that non-obvious decisions are annotated with _why_ inline (`spec
 006`, `constitution Principle III`, `references/status-messages.md`) rather than left for a future
 reader to reverse-engineer from the diff — the comments in this repo consistently point at a
 spec or principle, not at a restatement of what the code does.
 
 ## Where the four pressures show up, at a glance
 
-| Pressure | Where you see it |
-|---|---|
-| Security in depth | Three Postgres roles, GET-only route assertion, no raw SQL from request input |
-| Normalized/evolvable schema | Lookup tables for codes/units/providers, `IngestRun` as a first-class row, upsert-safe uniqueness constraints |
-| 600-line file ceiling | Repository functions split by table; components split from their test files; `serializers.ts` split from `schemas.ts` |
-| Accessibility as a gate | Spec's accessibility contract section, `announcer.ts`, focus management hooks, contrast-tested design tokens, axe in every e2e spec |
+| Pressure                    | Where you see it                                                                                                                    |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Security in depth           | Three Postgres roles, GET-only route assertion, no raw SQL from request input                                                       |
+| Normalized/evolvable schema | Lookup tables for codes/units/providers, `IngestRun` as a first-class row, upsert-safe uniqueness constraints                       |
+| 600-line file ceiling       | Repository functions split by table; components split from their test files; `serializers.ts` split from `schemas.ts`               |
+| Accessibility as a gate     | Spec's accessibility contract section, `announcer.ts`, focus management hooks, contrast-tested design tokens, axe in every e2e spec |

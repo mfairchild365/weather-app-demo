@@ -30,7 +30,9 @@ function Probe() {
     useVisitorContext();
   return (
     <div>
-      <span data-testid="home-city">{homeCity ? `${homeCity.name}, ${homeCity.regionName}` : 'none'}</span>
+      <span data-testid="home-city">
+        {homeCity ? `${homeCity.name}, ${homeCity.regionName}` : 'none'}
+      </span>
       <span data-testid="durable">{String(isDurable)}</span>
       <button onClick={() => setHomeCity(TOKYO)}>pin tokyo</button>
       <button onClick={() => setHomeCity(LONDON)}>pin london</button>

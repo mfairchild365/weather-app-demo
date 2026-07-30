@@ -147,9 +147,8 @@ export function resolveBrowserStorage(): StorageLike | null {
   }
 }
 
-export const visitorContextStore: VisitorContextStore = createVisitorContextStore(
-  resolveBrowserStorage(),
-);
+export const visitorContextStore: VisitorContextStore =
+  createVisitorContextStore(resolveBrowserStorage());
 
 /** Test-only teardown, mirroring `packages/ui/src/announcer.ts`'s `resetAnnouncer()`: clears the
  * default singleton's persisted and in-memory state so it cannot leak between test cases. */

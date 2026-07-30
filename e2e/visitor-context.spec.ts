@@ -47,12 +47,10 @@ test.describe('visitor context: pinned home city (spec 006)', () => {
     // Scoped to the list itself: the header's own "Home: Tokyo, Japan" link is unrelated to the
     // search filter and stays visible regardless, so an unscoped locator would false-negative.
     await page.getByRole('searchbox', { name: 'Search cities' }).fill('zzzznotacity');
-    await expect(page.getByRole('list').getByRole('link', { name: /Tokyo, Japan/ })).toHaveCount(
-      0,
-    );
+    await expect(page.getByRole('list').getByRole('link', { name: /Tokyo, Japan/ })).toHaveCount(0);
   });
 
-  test('the header link carries aria-current on the pinned city\'s own page, not elsewhere', async ({
+  test("the header link carries aria-current on the pinned city's own page, not elsewhere", async ({
     page,
   }) => {
     await page.goto(CITY_PATH);
@@ -115,9 +113,7 @@ test.describe('visitor context: pinned home city (spec 006)', () => {
     await page.keyboard.press('Tab'); // forget button
     const forgetButton = page.getByRole('button', { name: 'Forget my saved preferences' });
     await expect(forgetButton).toBeFocused();
-    expect(await forgetButton.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe(
-      'none',
-    );
+    expect(await forgetButton.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe('none');
 
     await page.keyboard.press('Tab'); // first city link in <main>
     await expect(page.locator('main')).not.toBeFocused();

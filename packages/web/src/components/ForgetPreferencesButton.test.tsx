@@ -21,9 +21,7 @@ describe('ForgetPreferencesButton', () => {
 
   it('is rendered and enabled when something is pinned', () => {
     renderWithVisitorContext(<ForgetPreferencesButton />, { homeCity: TOKYO });
-    expect(
-      screen.getByRole('button', { name: 'Forget my saved preferences' }),
-    ).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Forget my saved preferences' })).toBeEnabled();
   });
 
   it('clears the store when something was pinned', async () => {

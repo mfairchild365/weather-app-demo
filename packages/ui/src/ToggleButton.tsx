@@ -4,8 +4,10 @@ import {
   type ToggleButtonProps as AriaToggleButtonProps,
 } from 'react-aria-components';
 
-export interface ToggleButtonProps
-  extends Omit<AriaToggleButtonProps, 'className' | 'children' | 'aria-label'> {
+export interface ToggleButtonProps extends Omit<
+  AriaToggleButtonProps,
+  'className' | 'children' | 'aria-label'
+> {
   /** Visible text. MUST be state-neutral — per WCAG 4.1.2 and the WAI-ARIA APG Button pattern, a
    *  toggle button's accessible name must not change with its pressed state; state is conveyed
    *  by `aria-pressed` alone. Never pass e.g. "Set as home city" / "Remove home city" here. */

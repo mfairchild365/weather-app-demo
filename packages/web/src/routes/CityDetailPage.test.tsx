@@ -265,7 +265,7 @@ describe('CityDetailPage', () => {
       );
     });
 
-    it('a 404 for the pinned city\'s own slug clears the pin and announces why (FR-009)', async () => {
+    it("a 404 for the pinned city's own slug clears the pin and announces why (FR-009)", async () => {
       globalThis.fetch = (async () =>
         ({ ok: false, status: 404, json: async () => ({}) }) as Response) as typeof fetch;
       const { store } = renderAt('/cities/tokyo-jp', { homeCity: TOKYO_HOME_CITY });

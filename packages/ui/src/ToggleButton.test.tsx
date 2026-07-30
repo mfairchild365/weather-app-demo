@@ -39,7 +39,12 @@ describe('ToggleButton', () => {
   it('toggles isSelected via onChange on click', async () => {
     const onChange = vi.fn();
     render(
-      <ToggleButton label="Home city" qualifier="Tokyo, Japan" isSelected={false} onChange={onChange} />,
+      <ToggleButton
+        label="Home city"
+        qualifier="Tokyo, Japan"
+        isSelected={false}
+        onChange={onChange}
+      />,
     );
     const user = userEvent.setup();
     await user.click(screen.getByRole('button'));
@@ -49,7 +54,12 @@ describe('ToggleButton', () => {
   it('toggles via the Enter key', async () => {
     const onChange = vi.fn();
     render(
-      <ToggleButton label="Home city" qualifier="Tokyo, Japan" isSelected={false} onChange={onChange} />,
+      <ToggleButton
+        label="Home city"
+        qualifier="Tokyo, Japan"
+        isSelected={false}
+        onChange={onChange}
+      />,
     );
     const user = userEvent.setup();
     await user.tab();
@@ -60,7 +70,12 @@ describe('ToggleButton', () => {
   it('toggles via the Space key', async () => {
     const onChange = vi.fn();
     render(
-      <ToggleButton label="Home city" qualifier="Tokyo, Japan" isSelected={false} onChange={onChange} />,
+      <ToggleButton
+        label="Home city"
+        qualifier="Tokyo, Japan"
+        isSelected={false}
+        onChange={onChange}
+      />,
     );
     const user = userEvent.setup();
     await user.tab();

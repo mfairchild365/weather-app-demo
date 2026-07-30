@@ -151,7 +151,9 @@ describe('createVisitorContextStore', () => {
     const store = createVisitorContextStore(createFakeStorage());
     expect(store.parse(null)).toEqual(DEFAULT_VISITOR_CONTEXT);
     expect(
-      store.parse(JSON.stringify({ version: 1, homeCity: { slug: 'x', name: 'X', regionName: 'Y' } })),
+      store.parse(
+        JSON.stringify({ version: 1, homeCity: { slug: 'x', name: 'X', regionName: 'Y' } }),
+      ),
     ).toEqual({ version: 1, homeCity: { slug: 'x', name: 'X', regionName: 'Y' } });
     expect(store.parse('not json')).toEqual(DEFAULT_VISITOR_CONTEXT);
   });
